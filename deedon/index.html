@@ -304,9 +304,12 @@
   <aside id="pc-sidebar-ad">
     <div class="bg-white rounded-xl shadow-sm overflow-hidden p-2 text-center">
       <p class="text-[9px] text-gray-300 mb-1.5 font-semibold">광고</p>
-      <!-- COUPANG_AD_HOLDER: 아래 div에 쿠팡 파트너스 광고 스크립트를 붙여넣으세요 -->
-      <div id="coupang-ad-slot" style="min-height:600px; display:flex; align-items:center; justify-content:center;">
-        <p class="text-[10px] text-gray-300">쿠팡 광고<br/>준비 중</p>
+      <!-- COUPANG_AD_HOLDER -->
+      <div id="coupang-ad-slot">
+        <script src="https://ads-partners.coupang.com/g.js"></script>
+        <script>
+          new PartnersCoupang.G({"id":996318,"template":"carousel","trackingCode":"AF8691300","width":"100","height":"600","tsource":""});
+        </script>
       </div>
       <!-- /COUPANG_AD_HOLDER -->
     </div>
