@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="referrer" content="no-referrer-when-downgrade" />
   <title>NeeDON – 내 떼인 돈, 내가 찾는다</title>
+  <!-- 파비콘 & 아이콘 -->
+  <link rel="icon" type="image/png" href="needon-icon.png" />
+  <link rel="apple-touch-icon" href="needon-icon.png" />
+  <!-- OG / 소셜 공유 -->
+  <meta property="og:title" content="NeeDON – 내 떼인 돈, 내가 찾는다" />
+  <meta property="og:description" content="알바생·프리랜서의 주휴수당, 야간수당, 3.3% 원천세 누락분을 자동 계산. 노동청 제출용 정산서 발급." />
+  <meta property="og:image" content="https://dmazone.github.io/needon/needon-og.png" />
+  <meta property="og:url" content="https://dmazone.github.io/needon/" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://dmazone.github.io/needon/needon-og.png" />
   <script src="https://ads-partners.coupang.com/g.js"></script>
   <script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
   <script src="https://js.tosspayments.com/v2/standard" async></script>
@@ -98,9 +109,18 @@
   <header class="sticky top-0 z-30 bg-gradient-to-r from-[#0F0A2A] via-[#1A1040] to-[#2D1B69] shadow-xl">
     <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-[#FF5722] flex items-center justify-center shadow-lg">
-          <span class="text-white font-black text-base leading-none">N</span>
-        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="36" height="36" style="flex-shrink:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4))">
+          <defs>
+            <linearGradient id="hdr-bg" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#2D1B69"/><stop offset="1" stop-color="#0F0A2A"/>
+            </linearGradient>
+          </defs>
+          <rect width="36" height="36" rx="8" fill="url(#hdr-bg)"/>
+          <rect x="3" y="8" width="3.5" height="20" fill="#FF5722"/>
+          <polygon points="6.5,8 10,8 14,28 10.5,28" fill="#FF5722"/>
+          <rect x="13.5" y="8" width="3.5" height="20" fill="#FF5722"/>
+          <path fill-rule="evenodd" fill="white" d="M19 8 L22 8 Q34 8 34 18 Q34 28 22 28 L19 28 Z M22 12 Q30 12 30 18 Q30 24 22 24 Z"/>
+        </svg>
         <div>
           <h1 class="text-xl font-black text-white tracking-tight leading-none">
             Nee<span class="text-[#FF5722]">DON</span>
@@ -310,9 +330,13 @@
     <footer class="text-center py-6 mt-2">
       <div id="adminLogoBtn" onclick="handleAdminLogoClick()"
         class="inline-flex items-center gap-1.5 cursor-pointer select-none opacity-40 hover:opacity-70 transition-opacity">
-        <div class="w-5 h-5 rounded-lg bg-[#FF5722] flex items-center justify-center">
-          <span class="text-white font-black text-[10px]">N</span>
-        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" width="20" height="20" style="flex-shrink:0">
+          <rect width="36" height="36" rx="8" fill="#0F0A2A"/>
+          <rect x="3" y="8" width="3.5" height="20" fill="#FF5722"/>
+          <polygon points="6.5,8 10,8 14,28 10.5,28" fill="#FF5722"/>
+          <rect x="13.5" y="8" width="3.5" height="20" fill="#FF5722"/>
+          <path fill-rule="evenodd" fill="white" d="M19 8 L22 8 Q34 8 34 18 Q34 28 22 28 L19 28 Z M22 12 Q30 12 30 18 Q30 24 22 24 Z"/>
+        </svg>
         <span class="text-xs font-black text-gray-400">NeeDON</span>
       </div>
       <p class="text-[10px] text-gray-300 mt-1">(주)드마존 · 사업자등록번호 152-10-03103</p>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2D1B69"/>
+      <stop offset="1" stop-color="#0F0A2A"/>
+    </linearGradient>
+  </defs>
+  <!-- 배경 rounded square -->
+  <rect width="512" height="512" rx="114" fill="url(#bg)"/>
+  <!-- N (주황) -->
+  <rect x="43" y="114" width="50" height="284" fill="#FF5722"/>
+  <polygon points="93,114 143,114 200,398 150,398" fill="#FF5722"/>
+  <rect x="193" y="114" width="50" height="284" fill="#FF5722"/>
+  <!-- D (흰색, evenodd로 내부 컷아웃) -->
+  <path fill-rule="evenodd" fill="white"
+    d="M270 114 L313 114 Q484 114 484 256 Q484 398 313 398 L270 398 Z
+       M313 171 Q427 171 427 256 Q427 341 313 341 Z"/>
+</svg>
