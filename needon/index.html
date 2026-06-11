@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>NeeDON – 내 떼인 돈, 내가 찾는다</title>
+  <script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
+  <script src="https://js.tosspayments.com/v2/standard" async></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            nd: {
+              dark:   '#0F0A2A',
+              navy:   '#1A1040',
+              purple: '#2D1B69',
+              orange: '#FF5722',
+              amber:  '#FF8A50',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    * { -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Noto Sans KR', sans-serif; background: #F4F3F8; }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUpPanel {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    @keyframes pulse-ring {
+      0%   { transform: scale(0.95); opacity: 1; }
+      70%  { transform: scale(1.1);  opacity: 0.3; }
+      100% { transform: scale(0.95); opacity: 1; }
+    }
+
+    .fade-in-up  { animation: fadeInUp 0.35s ease-out both; }
+    .slide-panel { animation: slideUpPanel 0.3s cubic-bezier(0.32, 0.72, 0, 1) both; }
+
+    .calendar-day {
+      min-height: 52px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .calendar-day:active { transform: scale(0.93); }
+
+    .ad-ring {
+      stroke-dasharray: 226;
+      stroke-dashoffset: 226;
+      transition: stroke-dashoffset 1s linear;
+      transform-origin: center;
+    }
+
+    /* Receipt monospace touches */
+    .receipt-mono { font-family: 'Courier New', Courier, monospace; letter-spacing: -0.02em; }
+
+    /* Scrollbar hiding */
+    ::-webkit-scrollbar { display: none; }
+    * { scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen">
+
+  <!-- ══════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════ -->
+  <header class="sticky top-0 z-30 bg-gradient-to-r from-[#0F0A2A] via-[#1A1040] to-[#2D1B69] shadow-xl">
+    <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-[#FF5722] flex items-center justify-center shadow-lg">
+          <span class="text-white font-black text-base leading-none">N</span>
+        </div>
+        <div>
+          <h1 class="text-xl font-black text-white tracking-tight leading-none">
+            Nee<span class="text-[#FF5722]">DON</span>
+          </h1>
+          <p class="text-[10px] text-purple-300 leading-none mt-0.5">내 떼인 돈, 내가 찾는다</p>
+        </div>
+      </div>
+      <button id="loginBtn"
+        class="text-xs font-semibold bg-white/10 hover:bg-white/20 active:bg-white/5 text-white px-3.5 py-1.5 rounded-full transition-colors border border-white/20">
+        로그인
+      </button>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════════ -->
+  <main class="max-w-md mx-auto px-4 py-4 pb-32 space-y-3">
+
+    <!-- ─── STEP 1: 기본 설정 ─── -->
+    <section class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-4 pt-4 pb-1 flex items-center gap-2">
+        <span class="w-5 h-5 rounded-full bg-[#2D1B69] text-white text-[10px] font-black flex items-center justify-center">1</span>
+        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">기본 설정</h2>
+      </div>
+      <div class="px-4 pb-4 pt-3 space-y-4">
+
+        <!-- 시급 입력 -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">기본 시급</label>
+          <div class="relative">
+            <input id="hourlyWage" type="number" value="10030" min="0" step="10" inputmode="numeric"
+              class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-4 py-3 pr-16
+                     text-xl font-black text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all" />
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium pointer-events-none">원/h</span>
+          </div>
+          <p class="text-[11px] text-gray-400 mt-1 pl-1">2025년 법정 최저시급 10,030원</p>
+        </div>
+
+        <!-- 고용 형태 -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">고용 형태</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btnEmployee" onclick="setEmploymentType('employee')"
+              class="py-2.5 rounded-xl text-sm font-bold transition-all border-2 border-[#2D1B69] bg-[#2D1B69] text-white">
+              일반 직원
+            </button>
+            <button id="btnFreelancer" onclick="setEmploymentType('freelancer')"
+              class="py-2.5 rounded-xl text-sm font-bold transition-all border-2 border-gray-200 text-gray-400 bg-white">
+              프리랜서 (3.3%)
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── STEP 2: 달력 ─── -->
+    <section class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-4 pt-4 pb-1 flex items-center gap-2">
+        <span class="w-5 h-5 rounded-full bg-[#2D1B69] text-white text-[10px] font-black flex items-center justify-center">2</span>
+        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">근무 날짜 입력</h2>
+      </div>
+
+      <!-- 월 네비게이션 -->
+      <div class="flex items-center justify-between px-4 py-2">
+        <button onclick="changeMonth(-1)"
+          class="w-9 h-9 rounded-full bg-gray-50 hover:bg-gray-100 active:bg-gray-200 flex items-center justify-center transition-colors">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2D1B69" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <div class="text-center">
+          <p id="calendarTitle" class="text-base font-black text-gray-900"></p>
+          <p id="monthSummary" class="text-[11px] text-[#FF5722] font-semibold mt-0.5 h-3.5"></p>
+        </div>
+        <button onclick="changeMonth(1)"
+          class="w-9 h-9 rounded-full bg-gray-50 hover:bg-gray-100 active:bg-gray-200 flex items-center justify-center transition-colors">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2D1B69" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- 요일 헤더 -->
+      <div class="grid grid-cols-7 px-2 pb-1">
+        <div class="text-center text-[11px] font-bold text-red-400 py-1">일</div>
+        <div class="text-center text-[11px] font-bold text-gray-400 py-1">월</div>
+        <div class="text-center text-[11px] font-bold text-gray-400 py-1">화</div>
+        <div class="text-center text-[11px] font-bold text-gray-400 py-1">수</div>
+        <div class="text-center text-[11px] font-bold text-gray-400 py-1">목</div>
+        <div class="text-center text-[11px] font-bold text-gray-400 py-1">금</div>
+        <div class="text-center text-[11px] font-bold text-blue-400 py-1">토</div>
+      </div>
+
+      <!-- 달력 그리드 -->
+      <div id="calendarGrid" class="grid grid-cols-7 px-2 pb-2 gap-px"></div>
+
+      <!-- 주차별 요약 -->
+      <div id="weekSummary" class="px-3 pb-3 space-y-1.5"></div>
+    </section>
+
+    <!-- ─── CTA 버튼 ─── -->
+    <button onclick="startSettle()"
+      class="w-full bg-gradient-to-r from-[#FF5722] to-[#FF8A50] text-white
+             py-5 rounded-2xl text-[15px] font-black shadow-lg
+             hover:shadow-xl hover:brightness-105 active:scale-[0.97] active:brightness-95
+             transition-all duration-150 flex items-center justify-center gap-2">
+      <span class="text-lg">💰</span>
+      내 떼인 돈 최종 정산하기
+    </button>
+
+    <!-- ─── 결과 영역 (광고 완료 후 표시) ─── -->
+    <section id="resultsSection" class="hidden space-y-3 fade-in-up">
+
+      <!-- 영수증 -->
+      <div id="receipt" class="bg-white rounded-2xl shadow-sm overflow-hidden"></div>
+
+      <!-- 노동청 다운로드 버튼 -->
+      <button onclick="openPaymentModal()"
+        class="w-full bg-gradient-to-r from-[#0F0A2A] to-[#2D1B69] text-white
+               py-4 rounded-2xl text-sm font-bold shadow-md
+               hover:brightness-110 active:scale-[0.97] active:brightness-90
+               transition-all duration-150 flex items-center justify-center gap-2">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        </svg>
+        노동청 제출용 정산서 다운로드
+      </button>
+    </section>
+
+  </main>
+
+
+  <!-- ══════════════════════════════════════
+       DAY MODAL (슬라이드 업)
+  ══════════════════════════════════════ -->
+  <div id="dayModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeDayModal()"></div>
+    <div class="absolute bottom-0 inset-x-0 max-w-md mx-auto bg-white rounded-t-3xl slide-panel safe-bottom">
+      <div class="p-5 pb-8">
+        <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
+
+        <div class="flex items-center justify-between mb-4">
+          <h3 id="modalDateTitle" class="text-base font-black text-gray-900"></h3>
+          <button onclick="closeDayModal()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <!-- 시간 입력 -->
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1.5">출근 시간</label>
+              <input id="startTime" type="time" value="09:00"
+                class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-3
+                       text-base font-black text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1.5">퇴근 시간</label>
+              <input id="endTime" type="time" value="18:00"
+                class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-3
+                       text-base font-black text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all" />
+            </div>
+          </div>
+
+          <!-- 휴게 시간 -->
+          <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1.5">
+              휴게 시간 <span class="font-normal text-gray-400">(분 단위 입력)</span>
+            </label>
+            <input id="breakTime" type="number" value="60" min="0" max="480" step="30" inputmode="numeric"
+              class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-4 py-3
+                     text-base font-black text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all" />
+          </div>
+
+          <!-- 실시간 미리보기 -->
+          <div id="timePreview" class="bg-gray-50 rounded-2xl p-4 text-sm"></div>
+
+          <!-- 저장 / 삭제 -->
+          <div class="grid grid-cols-2 gap-3 pt-1">
+            <button onclick="deleteWorkDay()"
+              class="py-3.5 rounded-xl border-2 border-red-100 text-red-400 font-bold text-sm
+                     hover:bg-red-50 active:bg-red-100 transition-colors">
+              이날 삭제
+            </button>
+            <button onclick="saveWorkDay()"
+              class="py-3.5 rounded-xl bg-[#2D1B69] text-white font-black text-sm
+                     hover:bg-[#1A1040] active:bg-[#0F0A2A] transition-colors shadow-md">
+              저장하기
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════
+       AD MODAL (10초 광고 대기)
+  ══════════════════════════════════════ -->
+  <div id="adModal" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center bg-[#0F0A2A]">
+    <div class="w-full max-w-sm px-6 text-center">
+
+      <!-- 광고 슬롯 – 카카오 애드핏 DAN-zOmdh3TxPuQBjrgK -->
+      <div class="w-full mb-8 flex items-center justify-center overflow-hidden" style="min-height:208px;">
+        <ins class="kakao_ad_area" style="display:none;"
+          data-ad-unit="DAN-zOmdh3TxPuQBjrgK"
+          data-ad-width="320"
+          data-ad-height="480"></ins>
+      </div>
+
+      <!-- 카운트다운 링 -->
+      <div class="relative w-28 h-28 mx-auto mb-5">
+        <svg class="w-28 h-28 -rotate-90" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="7"/>
+          <circle id="adRing" cx="40" cy="40" r="36" fill="none" stroke="#FF5722" stroke-width="7"
+            stroke-linecap="round" class="ad-ring"/>
+        </svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span id="adCountNum" class="text-4xl font-black text-white leading-none">10</span>
+          <span class="text-[10px] text-white/50 mt-0.5">초</span>
+        </div>
+      </div>
+
+      <p class="text-white font-bold text-sm mb-1">광고 시청 중…</p>
+      <p class="text-white/40 text-xs">시청 완료 후 정산 결과가 표시됩니다</p>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════
+       PAYMENT MODAL (토스페이먼츠 스켈레톤)
+  ══════════════════════════════════════ -->
+  <div id="paymentModal" class="fixed inset-0 z-[60] hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closePaymentModal()"></div>
+    <div class="absolute bottom-0 inset-x-0 max-w-md mx-auto bg-white rounded-t-3xl slide-panel">
+      <div class="p-5 pb-10">
+        <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
+
+        <!-- 토스 헤더 -->
+        <div class="flex items-center justify-between mb-5">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 bg-[#0064FF] rounded-xl flex items-center justify-center shadow-md">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-[10px] text-gray-400 leading-none">안전한 결제</p>
+              <p class="text-sm font-black text-gray-900 leading-tight mt-0.5">토스페이먼츠</p>
+            </div>
+          </div>
+          <button onclick="closePaymentModal()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 결제 금액 -->
+        <div class="bg-blue-50 rounded-2xl p-4 mb-4">
+          <p class="text-xs text-blue-500 font-semibold mb-1">NeeDON 노동청 정산서 발급</p>
+          <p id="paymentAmountDisplay" class="text-2xl font-black text-gray-900">₩ 1,900</p>
+          <p class="text-xs text-gray-400 mt-1.5 leading-relaxed">
+            근로기준법 기준 자동 산정 · PDF 즉시 발급<br/>
+            노동청·고용노동부 제출 가능 서식
+          </p>
+        </div>
+
+        <!-- 결제 수단 목록 -->
+        <div class="space-y-2 mb-5">
+          <div class="border-2 border-[#0064FF] rounded-xl p-3.5 flex items-center gap-3">
+            <div class="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center text-lg">💳</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-gray-900">신용·체크카드</p>
+              <p class="text-xs text-gray-400">무이자 할부 선택 가능</p>
+            </div>
+            <div class="w-4 h-4 rounded-full border-2 border-[#0064FF] bg-[#0064FF] flex items-center justify-center shrink-0">
+              <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+            </div>
+          </div>
+          <div class="border-2 border-gray-100 rounded-xl p-3.5 flex items-center gap-3 opacity-50">
+            <div class="w-9 h-9 bg-yellow-50 rounded-xl flex items-center justify-center text-lg">💛</div>
+            <div class="flex-1">
+              <p class="text-sm font-bold text-gray-900">카카오페이</p>
+            </div>
+          </div>
+          <div class="border-2 border-gray-100 rounded-xl p-3.5 flex items-center gap-3 opacity-50">
+            <div class="w-9 h-9 bg-green-50 rounded-xl flex items-center justify-center text-lg">🏦</div>
+            <div class="flex-1">
+              <p class="text-sm font-bold text-gray-900">계좌이체</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 결제 버튼 -->
+        <button onclick="initiatePayment()"
+          class="w-full bg-[#0064FF] hover:bg-blue-700 active:bg-blue-800 text-white
+                 py-4 rounded-2xl font-black text-sm shadow-lg
+                 active:scale-[0.98] transition-all">
+          1,900원 결제하기
+        </button>
+        <p class="text-center text-xs text-gray-400 mt-3">결제 완료 즉시 PDF 자동 다운로드</p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════
+       VANILLA JS 계산 엔진 + 앱 로직
+  ══════════════════════════════════════ -->
+  <script>
+  'use strict';
+
+  // ──────────────────────────────────────
+  // 전역 상태
+  // ──────────────────────────────────────
+  const state = {
+    currentDate: new Date(),
+    workRecords: {},     // key: 'YYYY-MM-DD', value: { start, end, break }
+    employmentType: 'employee',
+    selectedDay: null,
+    adTimer: null,
+    settled: false,
+  };
+
+  // ──────────────────────────────────────
+  // 고용 형태 선택
+  // ──────────────────────────────────────
+  function setEmploymentType(type) {
+    state.employmentType = type;
+    const active  = 'border-2 border-[#2D1B69] bg-[#2D1B69] text-white';
+    const passive = 'border-2 border-gray-200 text-gray-400 bg-white';
+    document.getElementById('btnEmployee').className   = `py-2.5 rounded-xl text-sm font-bold transition-all ${type === 'employee'   ? active : passive}`;
+    document.getElementById('btnFreelancer').className = `py-2.5 rounded-xl text-sm font-bold transition-all ${type === 'freelancer' ? active : passive}`;
+    renderMonthSummary();
+  }
+
+  // ──────────────────────────────────────
+  // 달력 렌더링
+  // ──────────────────────────────────────
+  function changeMonth(delta) {
+    const d = state.currentDate;
+    state.currentDate = new Date(d.getFullYear(), d.getMonth() + delta, 1);
+    renderCalendar();
+    document.getElementById('resultsSection').classList.add('hidden');
+    state.settled = false;
+  }
+
+  function renderCalendar() {
+    const d     = state.currentDate;
+    const year  = d.getFullYear();
+    const month = d.getMonth();
+
+    document.getElementById('calendarTitle').textContent =
+      `${year}년 ${month + 1}월`;
+
+    const firstDow  = new Date(year, month, 1).getDay();
+    const lastDate  = new Date(year, month + 1, 0).getDate();
+    const today     = new Date();
+
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML = '';
+
+    // 빈 셀
+    for (let i = 0; i < firstDow; i++) {
+      const empty = document.createElement('div');
+      empty.className = 'calendar-day rounded-xl bg-transparent';
+      grid.appendChild(empty);
+    }
+
+    // 날짜 셀
+    for (let day = 1; day <= lastDate; day++) {
+      const dateStr = buildDateStr(year, month + 1, day);
+      const rec     = state.workRecords[dateStr];
+      const dow     = new Date(year, month, day).getDay();
+      const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+
+      const cell = document.createElement('div');
+      cell.className = `calendar-day rounded-xl flex flex-col items-center pt-1.5 pb-1 relative
+        ${rec ? 'bg-purple-50 hover:bg-purple-100' : 'bg-gray-50 hover:bg-gray-100'}`;
+      cell.onclick = () => openDayModal(dateStr, day);
+
+      // 날짜 숫자
+      const numEl = document.createElement('div');
+      numEl.className = `w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black
+        ${isToday ? 'bg-[#2D1B69] text-white'
+          : dow === 0 ? 'text-red-400'
+          : dow === 6 ? 'text-blue-400'
+          : 'text-gray-700'}`;
+      numEl.textContent = day;
+      cell.appendChild(numEl);
+
+      if (rec) {
+        const { totalHours, nightHours } = calcHours(rec.start, rec.end, rec.break || 0);
+        const hEl = document.createElement('div');
+        hEl.className = 'text-[9px] font-bold text-[#FF5722] mt-0.5 leading-none';
+        hEl.textContent = `${totalHours.toFixed(1)}h`;
+        cell.appendChild(hEl);
+
+        if (nightHours > 0) {
+          const dot = document.createElement('div');
+          dot.className = 'absolute top-1 right-1 w-1.5 h-1.5 bg-[#2D1B69] rounded-full';
+          cell.appendChild(dot);
+        }
+      }
+
+      grid.appendChild(cell);
+    }
+
+    renderMonthSummary();
+    renderWeekSummary(year, month);
+  }
+
+  function renderMonthSummary() {
+    const d    = state.currentDate;
+    const { grossPay } = calcMonthlyPay(d.getFullYear(), d.getMonth());
+    const el   = document.getElementById('monthSummary');
+    el.textContent = grossPay > 0
+      ? `이번달 예상 급여 ${Math.round(grossPay).toLocaleString()}원`
+      : '날짜를 눌러 근무 시간을 입력하세요';
+  }
+
+  function renderWeekSummary(year, month) {
+    const el = document.getElementById('weekSummary');
+    el.innerHTML = '';
+    getWeeks(year, month).forEach((week, wi) => {
+      const weekHours = weekTotalHours(week, year, month);
+      if (weekHours === 0) return;
+      const eligible = weekHours >= 15;
+      const div = document.createElement('div');
+      div.className = `flex items-center justify-between px-3 py-2 rounded-xl
+        ${eligible ? 'bg-purple-50' : 'bg-gray-50'}`;
+      div.innerHTML = `
+        <span class="text-xs text-gray-500">${wi + 1}주차</span>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold ${eligible ? 'text-purple-700' : 'text-gray-600'}">${weekHours.toFixed(1)}시간</span>
+          ${eligible
+            ? '<span class="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">주휴수당 ✓</span>'
+            : '<span class="text-[9px] text-gray-300">15시간 미만</span>'}
+        </div>`;
+      el.appendChild(div);
+    });
+  }
+
+  // ──────────────────────────────────────
+  // 근무 입력 모달
+  // ──────────────────────────────────────
+  function openDayModal(dateStr, day) {
+    state.selectedDay = dateStr;
+    const [y, m] = dateStr.split('-');
+    document.getElementById('modalDateTitle').textContent =
+      `${y}년 ${parseInt(m)}월 ${day}일`;
+
+    const rec = state.workRecords[dateStr];
+    document.getElementById('startTime').value = rec ? rec.start  : '09:00';
+    document.getElementById('endTime').value   = rec ? rec.end    : '18:00';
+    document.getElementById('breakTime').value = rec ? rec.break  : '60';
+
+    updateTimePreview();
+    ['startTime', 'endTime', 'breakTime'].forEach(id =>
+      document.getElementById(id).oninput = updateTimePreview);
+
+    document.getElementById('dayModal').classList.remove('hidden');
+    document.getElementById('dayModal').classList.add('flex');
+  }
+
+  function closeDayModal() {
+    document.getElementById('dayModal').classList.add('hidden');
+    document.getElementById('dayModal').classList.remove('flex');
+    state.selectedDay = null;
+  }
+
+  function saveWorkDay() {
+    if (!state.selectedDay) return;
+    state.workRecords[state.selectedDay] = {
+      start: document.getElementById('startTime').value,
+      end:   document.getElementById('endTime').value,
+      break: parseInt(document.getElementById('breakTime').value) || 0,
+    };
+    closeDayModal();
+    renderCalendar();
+  }
+
+  function deleteWorkDay() {
+    if (!state.selectedDay) return;
+    delete state.workRecords[state.selectedDay];
+    closeDayModal();
+    renderCalendar();
+  }
+
+  function updateTimePreview() {
+    const start    = document.getElementById('startTime').value;
+    const end      = document.getElementById('endTime').value;
+    const breakMin = parseInt(document.getElementById('breakTime').value) || 0;
+    const wage     = getWage();
+    const { totalHours, dayHours, nightHours } = calcHours(start, end, breakMin);
+
+    const dayPay   = dayHours   * wage;
+    const nightPay = nightHours * wage * 1.5;
+    const total    = dayPay + nightPay;
+
+    document.getElementById('timePreview').innerHTML = `
+      <div class="space-y-1.5">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">실근무</span>
+          <span class="font-bold text-gray-900">${totalHours.toFixed(2)}시간</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">주간 근무</span>
+          <span class="font-semibold text-gray-700">${dayHours.toFixed(2)}h × ${wage.toLocaleString()}원</span>
+        </div>
+        ${nightHours > 0 ? `
+        <div class="flex justify-between text-sm">
+          <span class="text-[#2D1B69] font-semibold">🌙 야간 (22~06시)</span>
+          <span class="font-semibold text-[#2D1B69]">${nightHours.toFixed(2)}h × ${Math.round(wage * 1.5).toLocaleString()}원</span>
+        </div>` : ''}
+        <div class="flex justify-between pt-1.5 border-t border-gray-200">
+          <span class="text-sm font-bold text-gray-700">일 급여</span>
+          <span class="font-black text-[#FF5722]">${Math.round(total).toLocaleString()}원</span>
+        </div>
+      </div>`;
+  }
+
+  // ──────────────────────────────────────
+  // 핵심 계산 엔진 (근로기준법 준수)
+  // ──────────────────────────────────────
+
+  /** 시간 문자열 → 분 */
+  function toMin(timeStr) {
+    const [h, m] = timeStr.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  /** 두 구간 겹침(분) */
+  function overlap(s, e, zs, ze) {
+    return Math.max(0, Math.min(e, ze) - Math.max(s, zs));
+  }
+
+  /**
+   * 야간 근무 시간 계산 (근로기준법 제56조)
+   * 야간 = 22:00~익일 06:00
+   * 자정 넘김 처리: endMin += 1440
+   */
+  function calcHours(startStr, endStr, breakMin = 0) {
+    let startMin = toMin(startStr);
+    let endMin   = toMin(endStr);
+    if (endMin <= startMin) endMin += 1440;
+
+    const totalRaw = endMin - startMin;
+    const workMin  = Math.max(0, totalRaw - breakMin);
+
+    let nightRawMin = 0;
+    // Zone A: 당일 00:00~06:00 (새벽 출근 케이스)
+    if (startMin < 360) {
+      nightRawMin += overlap(startMin, endMin, 0, 360);
+    }
+    // Zone B: 22:00~24:00 (1320~1440)
+    nightRawMin += overlap(startMin, endMin, 1320, 1440);
+    // Zone C: 익일 00:00~06:00 (1440~1800 extended timeline)
+    nightRawMin += overlap(startMin, endMin, 1440, 1800);
+
+    // 휴게 시간 비율 보정 (휴게 시간 위치 미입력 → 비율 배분)
+    const ratio        = totalRaw > 0 ? workMin / totalRaw : 0;
+    const nightWorkMin = nightRawMin * ratio;
+    const dayWorkMin   = workMin - nightWorkMin;
+
+    return {
+      totalHours: workMin      / 60,
+      dayHours:   dayWorkMin   / 60,
+      nightHours: nightWorkMin / 60,
+    };
+  }
+
+  /**
+   * 월 전체 급여 계산
+   * - 일별 야간 가산 (근로기준법 제56조)
+   * - 주별 주휴수당 (근로기준법 제55조)
+   * - 프리랜서 3.3% 원천세 (소득세법 제127조)
+   */
+  function calcMonthlyPay(year, month) {
+    const wage   = getWage();
+    const weeks  = getWeeks(year, month);
+
+    let totalBasePay    = 0;
+    let totalNightExtra = 0;
+    let totalHolidayPay = 0;
+
+    const dayDetails  = [];
+    const weekDetails = [];
+
+    weeks.forEach((week, wi) => {
+      let weekHours = 0;
+
+      week.forEach(day => {
+        if (!day) return;
+        const dateStr = buildDateStr(year, month + 1, day);
+        const rec     = state.workRecords[dateStr];
+        if (!rec) return;
+
+        const { totalHours, dayHours, nightHours } = calcHours(rec.start, rec.end, rec.break || 0);
+
+        // 기본 시급 × 총 근무 시간 (주간 + 야간 기본분)
+        const basePay    = totalHours * wage;
+        // 야간 가산 = 야간 시간 × 시급 × 0.5 (기본 시급은 basePay에 포함)
+        const nightExtra = nightHours * wage * 0.5;
+
+        totalBasePay    += basePay;
+        totalNightExtra += nightExtra;
+        weekHours       += totalHours;
+
+        dayDetails.push({
+          dateStr, day,
+          start: rec.start, end: rec.end, breakMin: rec.break || 0,
+          totalHours, dayHours, nightHours,
+          dailyPay: basePay + nightExtra,
+        });
+      });
+
+      // 주휴수당: 주 15시간 이상 개근 시 (근로기준법 제55조, 시행령 제30조)
+      let holidayPay = 0;
+      if (weekHours >= 15) {
+        const clampedHours = Math.min(weekHours, 40);
+        holidayPay = (clampedHours / 40) * 8 * wage;
+        totalHolidayPay += holidayPay;
+      }
+
+      if (weekHours > 0) {
+        weekDetails.push({ weekNum: wi + 1, weekHours, holidayPay });
+      }
+    });
+
+    const grossPay = totalBasePay + totalNightExtra + totalHolidayPay;
+
+    // 프리랜서 원천세 3.3% (소득세 3% + 지방소득세 0.3%)
+    const taxRate   = 0.033;
+    const taxAmount = state.employmentType === 'freelancer' ? grossPay * taxRate : 0;
+    const netPay    = grossPay - taxAmount;
+
+    // 역산: 이미 세금을 뗀 금액을 받은 경우 세전 원래 금액
+    const reversedGross = state.employmentType === 'freelancer' && netPay > 0
+      ? netPay / (1 - taxRate)
+      : grossPay;
+
+    return {
+      wage,
+      grossPay, totalBasePay, totalNightExtra, totalHolidayPay,
+      taxAmount, netPay, reversedGross,
+      dayDetails, weekDetails,
+    };
+  }
+
+  // ──────────────────────────────────────
+  // 광고 모달 + 정산 결과
+  // ──────────────────────────────────────
+  function startSettle() {
+    const d    = state.currentDate;
+    const pfx  = buildDateStr(d.getFullYear(), d.getMonth() + 1, 1).slice(0, 7);
+    const count = Object.keys(state.workRecords).filter(k => k.startsWith(pfx)).length;
+
+    if (count === 0) {
+      showToast('달력에서 근무 날짜를 먼저 입력해 주세요 📅');
+      return;
+    }
+
+    // 광고 모달 표시
+    const modal = document.getElementById('adModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    let remaining = 10;
+    const ring    = document.getElementById('adRing');
+    const numEl   = document.getElementById('adCountNum');
+    const circumf = 226; // 2π × 36 ≈ 226
+
+    ring.style.strokeDashoffset = String(circumf);
+
+    state.adTimer = setInterval(() => {
+      // 진행률 업데이트
+      const elapsed  = 10 - remaining + 1;
+      ring.style.strokeDashoffset = String(circumf - (circumf * elapsed / 10));
+      numEl.textContent = remaining;
+
+      if (remaining <= 0) {
+        clearInterval(state.adTimer);
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        showResults();
+      }
+      remaining--;
+    }, 1000);
+  }
+
+  function showResults() {
+    state.settled = true;
+    const d      = state.currentDate;
+    const result = calcMonthlyPay(d.getFullYear(), d.getMonth());
+
+    document.getElementById('receipt').innerHTML = buildReceipt(d.getFullYear(), d.getMonth(), result);
+    document.getElementById('resultsSection').classList.remove('hidden');
+
+    requestAnimationFrame(() => {
+      document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  // ──────────────────────────────────────
+  // 영수증 HTML 생성
+  // ──────────────────────────────────────
+  function buildReceipt(year, month, r) {
+    const isFL     = state.employmentType === 'freelancer';
+    const today    = new Date();
+    const finalAmt = isFL ? r.netPay : r.grossPay;
+
+    let html = `
+      <!-- 헤더 -->
+      <div class="bg-gradient-to-br from-[#0F0A2A] to-[#2D1B69] px-5 pt-5 pb-6">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <p class="text-purple-300 text-[10px] font-semibold tracking-widest uppercase">임금 정산 명세서</p>
+            <h3 class="text-white text-lg font-black mt-0.5 tracking-tight">WAGE RECEIPT</h3>
+          </div>
+          <div class="text-right">
+            <p class="text-purple-300 text-[10px]">발행일</p>
+            <p class="text-white text-xs font-semibold">${today.toLocaleDateString('ko-KR')}</p>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="text-[10px] bg-white/10 text-purple-200 px-2 py-0.5 rounded-full">${year}년 ${month + 1}월분</span>
+          <span class="text-[10px] bg-white/10 text-purple-200 px-2 py-0.5 rounded-full">${isFL ? '프리랜서 (원천세 3.3%)' : '일반 근로자'}</span>
+          <span class="text-[10px] bg-white/10 text-purple-200 px-2 py-0.5 rounded-full">시급 ${r.wage.toLocaleString()}원</span>
+        </div>
+      </div>
+
+      <!-- 구분선 (영수증 톱니) -->
+      <div class="relative h-4 bg-[#2D1B69] overflow-hidden">
+        <svg viewBox="0 0 400 16" preserveAspectRatio="none" class="w-full h-4 absolute bottom-0">
+          <path d="M0,0 Q10,16 20,0 Q30,16 40,0 Q50,16 60,0 Q70,16 80,0 Q90,16 100,0 Q110,16 120,0 Q130,16 140,0 Q150,16 160,0 Q170,16 180,0 Q190,16 200,0 Q210,16 220,0 Q230,16 240,0 Q250,16 260,0 Q270,16 280,0 Q290,16 300,0 Q310,16 320,0 Q330,16 340,0 Q350,16 360,0 Q370,16 380,0 Q390,16 400,0 L400,16 L0,16 Z" fill="white"/>
+        </svg>
+      </div>`;
+
+    // 일별 내역
+    html += `<div class="px-4 pt-2 pb-2">
+      <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">일별 근무 내역</p>
+      <div class="space-y-2">`;
+
+    r.dayDetails.forEach(d => {
+      const dow = ['일','월','화','수','목','금','토'][new Date(d.dateStr).getDay()];
+      html += `
+        <div class="flex items-start justify-between py-2 border-b border-gray-50 last:border-0">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-gray-50 flex flex-col items-center justify-center shrink-0">
+              <span class="text-[10px] font-bold text-gray-400 leading-none">${dow}</span>
+              <span class="text-sm font-black text-gray-700 leading-tight">${d.day}</span>
+            </div>
+            <div>
+              <p class="text-sm font-bold text-gray-900">${d.start} – ${d.end}
+                ${d.nightHours > 0 ? `<span class="ml-1 text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">🌙야간</span>` : ''}
+              </p>
+              <p class="text-xs text-gray-400">${d.totalHours.toFixed(2)}h 근무${d.breakMin > 0 ? ` (휴게 ${d.breakMin}분)` : ''}</p>
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <p class="text-sm font-black text-gray-900">${Math.round(d.dailyPay).toLocaleString()}원</p>
+            ${d.nightHours > 0 ? `<p class="text-[10px] text-purple-500">야간 ${d.nightHours.toFixed(2)}h ×1.5</p>` : ''}
+          </div>
+        </div>`;
+    });
+
+    html += `</div></div>`;
+
+    // 주휴수당
+    if (r.totalHolidayPay > 0) {
+      html += `
+        <div class="mx-4 mb-3 bg-purple-50 rounded-2xl p-3">
+          <p class="text-[10px] font-bold text-purple-400 uppercase tracking-wider mb-2">주휴수당 내역 (근로기준법 제55조)</p>
+          <div class="space-y-1.5">`;
+      r.weekDetails.filter(w => w.holidayPay > 0).forEach(w => {
+        const formula = `${w.weekHours.toFixed(1)}h ÷ 40 × 8 × ${r.wage.toLocaleString()}원`;
+        html += `
+            <div class="flex items-start justify-between">
+              <div>
+                <p class="text-sm font-bold text-purple-900">${w.weekNum}주차</p>
+                <p class="text-[10px] text-purple-400 font-mono">${formula}</p>
+              </div>
+              <p class="text-sm font-black text-purple-700">+${Math.round(w.holidayPay).toLocaleString()}원</p>
+            </div>`;
+      });
+      html += `</div></div>`;
+    }
+
+    // 합계
+    html += `
+      <div class="mx-4 mb-4 border-2 border-gray-100 rounded-2xl overflow-hidden">
+        <div class="px-4 py-3 space-y-2 bg-gray-50">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">기본 급여 (총 근무 시간)</span>
+            <span class="font-bold">${Math.round(r.totalBasePay).toLocaleString()}원</span>
+          </div>
+          ${r.totalNightExtra > 0 ? `
+          <div class="flex justify-between text-sm">
+            <span class="text-purple-600">야간 가산 (+50%)</span>
+            <span class="font-bold text-purple-600">+${Math.round(r.totalNightExtra).toLocaleString()}원</span>
+          </div>` : ''}
+          ${r.totalHolidayPay > 0 ? `
+          <div class="flex justify-between text-sm">
+            <span class="text-blue-600">주휴수당</span>
+            <span class="font-bold text-blue-600">+${Math.round(r.totalHolidayPay).toLocaleString()}원</span>
+          </div>` : ''}
+        </div>
+        <div class="px-4 py-3 border-t-2 border-gray-100">
+          <div class="flex justify-between">
+            <span class="font-bold text-gray-700">세전 총 급여</span>
+            <span class="font-black text-gray-900 text-base">${Math.round(r.grossPay).toLocaleString()}원</span>
+          </div>
+          ${isFL ? `
+          <div class="flex justify-between mt-2 text-sm">
+            <span class="text-red-500">원천세 공제 (3.3%)</span>
+            <span class="font-bold text-red-500">−${Math.round(r.taxAmount).toLocaleString()}원</span>
+          </div>
+          <div class="flex justify-between mt-1">
+            <span class="text-sm font-bold text-gray-700">실수령액 (세후)</span>
+            <span class="font-black text-green-600">${Math.round(r.netPay).toLocaleString()}원</span>
+          </div>` : ''}
+        </div>
+        <div class="bg-gradient-to-r from-[#FF5722] to-[#FF8A50] px-4 py-4">
+          <p class="text-[10px] text-white/70 mb-1 font-medium">📋 내가 받아야 할 금액</p>
+          <p class="text-2xl font-black text-white">${Math.round(finalAmt).toLocaleString()}<span class="text-base font-bold ml-0.5">원</span></p>
+        </div>
+      </div>
+
+      <!-- 법적 고지 -->
+      <div class="mx-4 mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
+        <p class="text-xs font-bold text-amber-800 mb-1">⚠️ 임금 체불 신고 안내</p>
+        <p class="text-[11px] text-amber-700 leading-relaxed">
+          체불 임금 발생 시 <strong>고용노동부 1350</strong> 또는
+          <strong>민원마당(minwon.moel.go.kr)</strong>에 이 정산서를 첨부하여 신고하세요.
+          3년 이내 소멸시효가 적용됩니다.
+        </p>
+      </div>`;
+
+    return html;
+  }
+
+  // ──────────────────────────────────────
+  // 결제 모달 (토스페이먼츠 스켈레톤)
+  // ──────────────────────────────────────
+  function openPaymentModal() {
+    document.getElementById('paymentModal').classList.remove('hidden');
+    document.getElementById('paymentModal').classList.add('flex');
+  }
+
+  function closePaymentModal() {
+    document.getElementById('paymentModal').classList.add('hidden');
+    document.getElementById('paymentModal').classList.remove('flex');
+  }
+
+  async function initiatePayment() {
+    // TODO: OWNER_KEY_INJECTION – Toss Payments (라이브 전환 시 test_ck_ → live_ck_ 로 교체)
+    const CLIENT_KEY = 'test_ck_kYG57Eba3OKZ1jq2RLOw3pWDOxmA';
+    try {
+      if (typeof TossPayments === 'undefined') {
+        showToast('결제 모듈 로딩 중입니다. 잠시 후 다시 시도해주세요.');
+        return;
+      }
+      const tossPayments = TossPayments(CLIENT_KEY);
+      const payment = tossPayments.payment({
+        customerKey: currentUser?.uid || `GUEST_${Date.now()}`,
+      });
+      await payment.requestPayment({
+        method: 'CARD',
+        amount: { currency: 'KRW', value: 1900 },
+        orderId: `NEEDON-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        orderName: 'NeeDON 노동청 제출용 임금정산서',
+        successUrl: `${window.location.origin}${window.location.pathname}?payment=success`,
+        failUrl:    `${window.location.origin}${window.location.pathname}?payment=fail`,
+      });
+    } catch (e) {
+      if (e.code !== 'USER_CANCEL') {
+        showToast('결제 중 오류가 발생했습니다: ' + e.message);
+      }
+    }
+  }
+
+  // ──────────────────────────────────────
+  // Firebase Auth 격리 홀더
+  // ──────────────────────────────────────
+  // TODO: OWNER_KEY_INJECTION – Firebase Auth
+  // 아래 전체 블록을 실제 Firebase 설정으로 교체:
+  //
+  // import { initializeApp }                           from 'https://www.gstatic.com/firebasejs/10.x.x/firebase-app.js';
+  // import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged }
+  //   from 'https://www.gstatic.com/firebasejs/10.x.x/firebase-auth.js';
+  //
+  // const firebaseConfig = {
+  //   apiKey:            "YOUR_API_KEY",
+  //   authDomain:        "YOUR_PROJECT.firebaseapp.com",
+  //   projectId:         "YOUR_PROJECT_ID",
+  //   storageBucket:     "YOUR_PROJECT.appspot.com",
+  //   messagingSenderId: "YOUR_SENDER_ID",
+  //   appId:             "YOUR_APP_ID",
+  // };
+  //
+  // const app      = initializeApp(firebaseConfig);
+  // const auth     = getAuth(app);
+  // const provider = new GoogleAuthProvider();
+  //
+  // function loginWithGoogle() {
+  //   signInWithPopup(auth, provider)
+  //     .then(result => { currentUser = result.user; updateLoginUI(); })
+  //     .catch(err   => console.error(err));
+  // }
+  //
+  // onAuthStateChanged(auth, user => {
+  //   currentUser = user;
+  //   updateLoginUI();
+  //   if (user) loadUserRecordsFromFirestore(user.uid);
+  // });
+
+  let currentUser = null;
+
+  function updateLoginUI() {
+    const btn = document.getElementById('loginBtn');
+    btn.textContent = currentUser ? (currentUser.displayName || '내 계정') : '로그인';
+  }
+
+  document.getElementById('loginBtn').onclick = () => {
+    // TODO: OWNER_KEY_INJECTION – Firebase Auth
+    // Firebase 설정 후 아래를 loginWithGoogle()으로 교체
+    showToast('로그인 기능 준비 중입니다! 🔐');
+  };
+
+  // ──────────────────────────────────────
+  // 유틸리티
+  // ──────────────────────────────────────
+  function getWage() {
+    return parseInt(document.getElementById('hourlyWage').value) || 0;
+  }
+
+  function buildDateStr(year, month, day) {
+    return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  }
+
+  function getWeeks(year, month) {
+    const firstDow = new Date(year, month, 1).getDay();
+    const lastDate = new Date(year, month + 1, 0).getDate();
+    const weeks    = [];
+    let week       = Array(firstDow).fill(null);
+    for (let d = 1; d <= lastDate; d++) {
+      week.push(d);
+      if (week.length === 7) { weeks.push(week); week = []; }
+    }
+    if (week.length > 0) weeks.push(week);
+    return weeks;
+  }
+
+  function weekTotalHours(week, year, month) {
+    return week.reduce((sum, day) => {
+      if (!day) return sum;
+      const rec = state.workRecords[buildDateStr(year, month + 1, day)];
+      if (!rec) return sum;
+      return sum + calcHours(rec.start, rec.end, rec.break || 0).totalHours;
+    }, 0);
+  }
+
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl z-[70] whitespace-nowrap';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2800);
+  }
+
+  // ──────────────────────────────────────
+  // 초기화
+  // ──────────────────────────────────────
+  document.getElementById('hourlyWage').addEventListener('input', () => {
+    renderMonthSummary();
+    if (state.selectedDay) updateTimePreview();
+  });
+
+  renderCalendar();
+  </script>
+</body>
+</html>
