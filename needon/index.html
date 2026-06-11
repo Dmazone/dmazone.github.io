@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="referrer" content="no-referrer-when-downgrade" />
   <title>NeeDON – 내 떼인 돈, 내가 찾는다</title>
+  <script src="https://ads-partners.coupang.com/g.js"></script>
   <script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
   <script src="https://js.tosspayments.com/v2/standard" async></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
@@ -74,17 +75,18 @@
     * { scrollbar-width: none; }
 
     /* PC 사이드바 광고 */
-    #pc-sidebar-ad {
+    #pc-sidebar-ad, #pc-sidebar-left {
       display: none;
       position: fixed;
       top: 76px;
-      right: max(8px, calc(50vw - 224px - 180px));
       width: 160px;
       flex-direction: column;
       gap: 12px;
     }
+    #pc-sidebar-ad  { right: max(8px, calc(50vw - 224px - 180px)); }
+    #pc-sidebar-left { left: max(8px, calc(50vw - 224px - 180px)); }
     @media (min-width: 1024px) {
-      #pc-sidebar-ad { display: flex; }
+      #pc-sidebar-ad, #pc-sidebar-left { display: flex; }
     }
   </style>
 </head>
@@ -232,6 +234,24 @@
       <div id="weekSummary" class="px-3 pb-3 space-y-1.5"></div>
     </section>
 
+    <!-- ─── 모바일 제휴 광고 배너 (lg 미만만 노출) ─── -->
+    <div class="lg:hidden grid grid-cols-2 gap-2">
+      <!-- 텐핑 CPA – 머니트리카드 -->
+      <a href="https://iryan.kr/t8gpvmwwi" target="_blank" rel="noopener noreferrer"
+        class="bg-gradient-to-b from-[#1a56db] to-[#0ea5e9] rounded-2xl p-3 no-underline flex flex-col items-center justify-center gap-1.5" style="min-height:110px;">
+        <span style="font-size:24px">💳</span>
+        <p class="text-white font-black text-[11px] leading-tight text-center">머니트리카드<br/>무료 신청</p>
+        <p class="text-white/60 text-[9px] text-center">발급 조건 없음</p>
+      </a>
+      <!-- 쿠팡 파트너스 -->
+      <div class="rounded-2xl overflow-hidden bg-white shadow-sm flex items-center justify-center" style="min-height:110px;">
+        <script>
+          new PartnersCoupang.G({"id":996318,"template":"carousel","trackingCode":"AF8691300","width":"160","height":"110","tsource":""});
+        </script>
+      </div>
+    </div>
+    <p class="lg:hidden text-[8px] text-gray-300 text-center -mt-1">이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p>
+
     <!-- ─── CTA 버튼 ─── -->
     <button onclick="startSettle()"
       class="w-full bg-gradient-to-r from-[#FF5722] to-[#FF8A50] text-white
@@ -306,13 +326,31 @@
 
   </main>
 
-  <!-- PC 사이드바 광고 -->
+  <!-- PC 좌측 사이드바 – 텐핑 CPA -->
+  <aside id="pc-sidebar-left">
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden p-2 text-center">
+      <p class="text-[9px] text-gray-300 mb-1.5 font-semibold">광고</p>
+      <a href="https://iryan.kr/t8gpvmwwi" target="_blank" rel="noopener noreferrer"
+        class="block no-underline bg-gradient-to-b from-[#1a56db] to-[#0ea5e9] rounded-xl"
+        style="min-height:580px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:16px 8px;">
+        <span style="font-size:38px">💳</span>
+        <p style="color:#fff; font-weight:900; font-size:13px; line-height:1.4; text-align:center;">발급 조건 없는<br/>머니트리카드</p>
+        <div style="width:80%; height:1px; background:rgba(255,255,255,0.2);"></div>
+        <p style="color:rgba(255,255,255,0.7); font-size:10px; line-height:1.6; text-align:center;">연회비 없음<br/>실적 조건 없음<br/>첫 결제 시 2,000원 지급</p>
+        <div style="background:rgba(255,255,255,0.2); border-radius:8px; padding:6px 12px; margin-top:6px;">
+          <p style="color:#fff; font-weight:900; font-size:11px;">무료 신청하기 →</p>
+        </div>
+      </a>
+      <p class="text-[8px] text-gray-300 leading-relaxed mt-2 px-1 text-left">이 포스팅은 텐핑 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p>
+    </div>
+  </aside>
+
+  <!-- PC 우측 사이드바 – 쿠팡 파트너스 -->
   <aside id="pc-sidebar-ad">
     <div class="bg-white rounded-xl shadow-sm overflow-hidden p-2 text-center">
       <p class="text-[9px] text-gray-300 mb-1.5 font-semibold">광고</p>
       <!-- COUPANG_AD_HOLDER -->
       <div id="coupang-ad-slot">
-        <script src="https://ads-partners.coupang.com/g.js"></script>
         <script>
           new PartnersCoupang.G({"id":996318,"template":"carousel","trackingCode":"AF8691300","width":"100","height":"600","tsource":""});
         </script>
