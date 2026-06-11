@@ -110,10 +110,10 @@
       <div class="px-4 pb-4 pt-3 space-y-4">
 
         <!-- 시급 입력 -->
-        <div>
+        <div id="hourlyWageArea">
           <label class="block text-sm font-semibold text-gray-700 mb-1.5">기본 시급</label>
           <div class="relative">
-            <input id="hourlyWage" type="number" value="10030" min="0" step="10" inputmode="numeric"
+            <input id="hourlyWage" type="text" inputmode="numeric" value="10030"
               class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-4 py-3 pr-16
                      text-xl font-black text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all" />
             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium pointer-events-none">원/h</span>
@@ -121,17 +121,43 @@
           <p class="text-[11px] text-gray-400 mt-1 pl-1">2025년 법정 최저시급 10,030원</p>
         </div>
 
+        <!-- 직장인 급여 입력 (salary 탭 전용) -->
+        <div id="salaryInputArea" class="hidden">
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">세전 급여</label>
+          <div class="relative mb-2">
+            <input id="salaryAmountInput" type="text" inputmode="numeric" placeholder="예: 30,000,000"
+              class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-4 py-3 pr-12
+                     text-xl font-black text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all" />
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium pointer-events-none">원</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btnYearly" onclick="setSalaryPeriod('yearly')"
+              class="py-2 rounded-xl text-sm font-bold transition-all border-2 border-[#2D1B69] bg-[#2D1B69] text-white">
+              연봉
+            </button>
+            <button id="btnMonthly" onclick="setSalaryPeriod('monthly')"
+              class="py-2 rounded-xl text-sm font-bold transition-all border-2 border-gray-200 text-gray-400 bg-white">
+              월급
+            </button>
+          </div>
+          <p class="text-[11px] text-gray-400 mt-1 pl-1">국민연금·건강보험·고용보험·소득세 자동 공제</p>
+        </div>
+
         <!-- 고용 형태 -->
         <div>
           <label class="block text-sm font-semibold text-gray-700 mb-1.5">고용 형태</label>
-          <div class="grid grid-cols-2 gap-2">
+          <div class="grid grid-cols-3 gap-2">
             <button id="btnEmployee" onclick="setEmploymentType('employee')"
               class="py-2.5 rounded-xl text-sm font-bold transition-all border-2 border-[#2D1B69] bg-[#2D1B69] text-white">
-              일반 직원
+              일반 알바
             </button>
             <button id="btnFreelancer" onclick="setEmploymentType('freelancer')"
               class="py-2.5 rounded-xl text-sm font-bold transition-all border-2 border-gray-200 text-gray-400 bg-white">
-              프리랜서 (3.3%)
+              프리랜서 3.3%
+            </button>
+            <button id="btnSalary" onclick="setEmploymentType('salary')"
+              class="py-2.5 rounded-xl text-sm font-bold transition-all border-2 border-gray-200 text-gray-400 bg-white">
+              직장인
             </button>
           </div>
         </div>
@@ -139,7 +165,7 @@
     </section>
 
     <!-- ─── STEP 2: 달력 ─── -->
-    <section class="bg-white rounded-2xl shadow-sm overflow-hidden">
+    <section id="calendarSection" class="bg-white rounded-2xl shadow-sm overflow-hidden">
       <div class="px-4 pt-4 pb-1 flex items-center gap-2">
         <span class="w-5 h-5 rounded-full bg-[#2D1B69] text-white text-[10px] font-black flex items-center justify-center">2</span>
         <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">근무 날짜 입력</h2>
@@ -157,12 +183,18 @@
           <p id="calendarTitle" class="text-base font-black text-gray-900"></p>
           <p id="monthSummary" class="text-[11px] text-[#FF5722] font-semibold mt-0.5 h-3.5"></p>
         </div>
-        <button onclick="changeMonth(1)"
-          class="w-9 h-9 rounded-full bg-gray-50 hover:bg-gray-100 active:bg-gray-200 flex items-center justify-center transition-colors">
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2D1B69" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-          </svg>
-        </button>
+        <div class="flex items-center gap-1.5">
+          <button id="bulkBtn" onclick="openBulkModal()"
+            class="text-[11px] bg-purple-50 text-purple-700 font-bold px-2 py-1.5 rounded-lg border border-purple-100 active:bg-purple-100 transition-colors">
+            🗓️ 일괄
+          </button>
+          <button onclick="changeMonth(1)"
+            class="w-9 h-9 rounded-full bg-gray-50 hover:bg-gray-100 active:bg-gray-200 flex items-center justify-center transition-colors">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2D1B69" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <!-- 요일 헤더 -->
@@ -225,6 +257,74 @@
     </section>
 
   </main>
+
+
+  <!-- ══════════════════════════════════════
+       BULK MODAL (기간 일괄 등록)
+  ══════════════════════════════════════ -->
+  <div id="bulkModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeBulkModal()"></div>
+    <div class="absolute bottom-0 inset-x-0 max-w-md mx-auto bg-white rounded-t-3xl slide-panel safe-bottom">
+      <div class="p-5 pb-8">
+        <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-base font-black text-gray-900">🗓️ 기간 일괄 등록</h3>
+          <button onclick="closeBulkModal()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1.5">시작일</label>
+              <input id="bulkStartDate" type="date"
+                class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1.5">종료일</label>
+              <input id="bulkEndDate" type="date"
+                class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1.5">출근 시간</label>
+              <input id="bulkStartTime" type="time" value="09:00"
+                class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 mb-1.5">퇴근 시간</label>
+              <input id="bulkEndTime" type="time" value="18:00"
+                class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-500 mb-1.5">휴게 시간 (분)</label>
+            <input id="bulkBreak" type="number" value="60" min="0" max="480" step="30" inputmode="numeric"
+              class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-500 mb-2">적용 요일</label>
+            <div class="flex gap-3 flex-wrap">
+              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="1" checked style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-gray-700">월</span></label>
+              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="2" checked style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-gray-700">화</span></label>
+              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="3" checked style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-gray-700">수</span></label>
+              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="4" checked style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-gray-700">목</span></label>
+              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="5" checked style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-gray-700">금</span></label>
+              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="6" style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-blue-400">토</span></label>
+              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="0" style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-red-400">일</span></label>
+            </div>
+          </div>
+          <button onclick="applyBulkRegister()"
+            class="w-full bg-gradient-to-r from-[#2D1B69] to-[#0F0A2A] text-white py-4 rounded-2xl font-black text-sm shadow-md active:scale-[0.98] transition-all">
+            일괄 등록하기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 
   <!-- ══════════════════════════════════════
@@ -416,23 +516,47 @@
   // ──────────────────────────────────────
   const state = {
     currentDate: new Date(),
-    workRecords: {},     // key: 'YYYY-MM-DD', value: { start, end, break }
+    workRecords: {},
     employmentType: 'employee',
     selectedDay: null,
     adTimer: null,
     settled: false,
+    salaryAmount: 0,
+    salaryPeriod: 'yearly',
+    isAppMarketMode: false,
   };
 
   function saveToLocalStorage() {
-    localStorage.setItem('needon_work_records', JSON.stringify(state.workRecords));
-    localStorage.setItem('needon_employment_type', state.employmentType);
+    const compact = JSON.stringify({
+      r: state.workRecords,
+      t: state.employmentType,
+      sa: state.salaryAmount,
+      sp: state.salaryPeriod,
+    });
+    localStorage.setItem('needon_v2', compact);
+    localStorage.setItem('needon_freeze_backup', compact);
   }
 
   function loadFromLocalStorage() {
-    const r = localStorage.getItem('needon_work_records');
-    const t = localStorage.getItem('needon_employment_type');
-    if (r) state.workRecords = JSON.parse(r);
-    if (t) { state.employmentType = t; setEmploymentType(t); }
+    const v2 = localStorage.getItem('needon_v2');
+    if (v2) {
+      try {
+        const d = JSON.parse(v2);
+        if (d.r)    state.workRecords    = d.r;
+        if (d.t)    state.employmentType = d.t;
+        if (d.sa != null) state.salaryAmount = d.sa;
+        if (d.sp)   state.salaryPeriod   = d.sp;
+        setEmploymentType(state.employmentType);
+        return;
+      } catch(e) {}
+    }
+    // 레거시 폴백
+    try {
+      const r = localStorage.getItem('needon_work_records');
+      const t = localStorage.getItem('needon_employment_type');
+      if (r) state.workRecords = JSON.parse(r);
+      if (t) { state.employmentType = t; setEmploymentType(t); }
+    } catch(e) {}
   }
 
   // ──────────────────────────────────────
@@ -440,11 +564,37 @@
   // ──────────────────────────────────────
   function setEmploymentType(type) {
     state.employmentType = type;
-    const active  = 'border-2 border-[#2D1B69] bg-[#2D1B69] text-white';
-    const passive = 'border-2 border-gray-200 text-gray-400 bg-white';
-    document.getElementById('btnEmployee').className   = `py-2.5 rounded-xl text-sm font-bold transition-all ${type === 'employee'   ? active : passive}`;
-    document.getElementById('btnFreelancer').className = `py-2.5 rounded-xl text-sm font-bold transition-all ${type === 'freelancer' ? active : passive}`;
-    renderMonthSummary();
+    const a = 'py-2.5 rounded-xl text-sm font-bold transition-all border-2 border-[#2D1B69] bg-[#2D1B69] text-white';
+    const p = 'py-2.5 rounded-xl text-sm font-bold transition-all border-2 border-gray-200 text-gray-400 bg-white';
+    document.getElementById('btnEmployee').className   = type === 'employee'   ? a : p;
+    document.getElementById('btnFreelancer').className = type === 'freelancer' ? a : p;
+    document.getElementById('btnSalary').className     = type === 'salary'     ? a : p;
+
+    const isSalary = type === 'salary';
+    document.getElementById('hourlyWageArea').classList.toggle('hidden', isSalary);
+    document.getElementById('salaryInputArea').classList.toggle('hidden', !isSalary);
+    document.getElementById('calendarSection').classList.toggle('hidden', isSalary);
+
+    if (isSalary) {
+      document.getElementById('salaryAmountInput').value = '';
+      state.salaryAmount = 0;
+    } else {
+      renderCalendar();
+    }
+
+    document.getElementById('resultsSection').classList.add('hidden');
+    state.settled = false;
+
+    // 일괄 등록 버튼은 알바/프리랜서 탭에만 노출
+    document.getElementById('bulkBtn').classList.toggle('hidden', isSalary);
+  }
+
+  function setSalaryPeriod(period) {
+    state.salaryPeriod = period;
+    const a = 'py-2 rounded-xl text-sm font-bold transition-all border-2 border-[#2D1B69] bg-[#2D1B69] text-white';
+    const p = 'py-2 rounded-xl text-sm font-bold transition-all border-2 border-gray-200 text-gray-400 bg-white';
+    document.getElementById('btnYearly').className  = period === 'yearly'  ? a : p;
+    document.getElementById('btnMonthly').className = period === 'monthly' ? a : p;
   }
 
   // ──────────────────────────────────────
@@ -767,13 +917,15 @@
   // 광고 모달 + 정산 결과
   // ──────────────────────────────────────
   function startSettle() {
-    const d    = state.currentDate;
-    const pfx  = buildDateStr(d.getFullYear(), d.getMonth() + 1, 1).slice(0, 7);
-    const count = Object.keys(state.workRecords).filter(k => k.startsWith(pfx)).length;
-
-    if (count === 0) {
-      showToast('달력에서 근무 날짜를 먼저 입력해 주세요 📅');
-      return;
+    if (state.employmentType === 'salary') {
+      const amt = parseInt((document.getElementById('salaryAmountInput').value || '').replace(/,/g, ''), 10) || 0;
+      if (amt <= 0) { showToast('급여 금액을 입력해 주세요 💰'); return; }
+      state.salaryAmount = amt;
+    } else {
+      const d   = state.currentDate;
+      const pfx = buildDateStr(d.getFullYear(), d.getMonth() + 1, 1).slice(0, 7);
+      const count = Object.keys(state.workRecords).filter(k => k.startsWith(pfx)).length;
+      if (count === 0) { showToast('달력에서 근무 날짜를 먼저 입력해 주세요 📅'); return; }
     }
 
     // 광고 모달 표시
@@ -806,12 +958,15 @@
 
   function showResults() {
     state.settled = true;
-    const d      = state.currentDate;
-    const result = calcMonthlyPay(d.getFullYear(), d.getMonth());
-
-    document.getElementById('receipt').innerHTML = buildReceipt(d.getFullYear(), d.getMonth(), result);
+    if (state.employmentType === 'salary') {
+      const result = calcSalaryWorkerPay(state.salaryAmount, state.salaryPeriod === 'yearly');
+      document.getElementById('receipt').innerHTML = buildSalaryReceipt(result);
+    } else {
+      const d = state.currentDate;
+      const result = calcMonthlyPay(d.getFullYear(), d.getMonth());
+      document.getElementById('receipt').innerHTML = buildReceipt(d.getFullYear(), d.getMonth(), result);
+    }
     document.getElementById('resultsSection').classList.remove('hidden');
-
     requestAnimationFrame(() => {
       document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -956,6 +1111,148 @@
   }
 
   // ──────────────────────────────────────
+  // 직장인 실수령액 계산 엔진
+  // ──────────────────────────────────────
+  function calcSalaryWorkerPay(amount, isYearly) {
+    const monthlyGross = isYearly ? Math.round(amount / 12) : amount;
+    const mealExempt   = 200000;
+    const taxBase      = Math.max(0, monthlyGross - mealExempt);
+    const pension      = Math.round(taxBase * 0.045);
+    const health       = Math.round(taxBase * 0.03545);
+    const employment   = Math.round(taxBase * 0.009);
+    const incomeTax    = Math.round(taxBase * 0.03);
+    const totalDeduct  = pension + health + employment + incomeTax;
+    const netPay       = monthlyGross - totalDeduct;
+    return { amount, isYearly, monthlyGross, mealExempt, taxBase, pension, health, employment, incomeTax, totalDeduct, netPay };
+  }
+
+  function buildSalaryReceipt(r) {
+    const today = new Date();
+    return `
+      <div class="bg-gradient-to-br from-[#0F0A2A] to-[#2D1B69] px-5 pt-5 pb-6">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <p class="text-purple-300 text-[10px] font-semibold tracking-widest uppercase">실수령액 명세서</p>
+            <h3 class="text-white text-lg font-black mt-0.5 tracking-tight">SALARY RECEIPT</h3>
+          </div>
+          <div class="text-right">
+            <p class="text-purple-300 text-[10px]">발행일</p>
+            <p class="text-white text-xs font-semibold">${today.toLocaleDateString('ko-KR')}</p>
+          </div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="text-[10px] bg-white/10 text-purple-200 px-2 py-0.5 rounded-full">직장인 실수령</span>
+          <span class="text-[10px] bg-white/10 text-purple-200 px-2 py-0.5 rounded-full">${r.isYearly ? '연봉 기준' : '월급 기준'}</span>
+          <span class="text-[10px] bg-white/10 text-purple-200 px-2 py-0.5 rounded-full">${r.amount.toLocaleString()}원</span>
+        </div>
+      </div>
+      <div class="relative h-4 bg-[#2D1B69] overflow-hidden">
+        <svg viewBox="0 0 400 16" preserveAspectRatio="none" class="w-full h-4 absolute bottom-0">
+          <path d="M0,0 Q10,16 20,0 Q30,16 40,0 Q50,16 60,0 Q70,16 80,0 Q90,16 100,0 Q110,16 120,0 Q130,16 140,0 Q150,16 160,0 Q170,16 180,0 Q190,16 200,0 Q210,16 220,0 Q230,16 240,0 Q250,16 260,0 Q270,16 280,0 Q290,16 300,0 Q310,16 320,0 Q330,16 340,0 Q350,16 360,0 Q370,16 380,0 Q390,16 400,0 L400,16 L0,16 Z" fill="white"/>
+        </svg>
+      </div>
+      <div class="px-4 pt-3 pb-2">
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">공제 내역</p>
+        <div class="space-y-2">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">세전 ${r.isYearly ? '연봉' : '월급'}</span>
+            <span class="font-bold">${r.amount.toLocaleString()}원</span>
+          </div>
+          ${r.isYearly ? `<div class="flex justify-between text-sm"><span class="text-gray-500">월 환산 (÷12)</span><span class="font-bold">${r.monthlyGross.toLocaleString()}원</span></div>` : ''}
+          <div class="flex justify-between text-sm">
+            <span class="text-green-600 font-semibold">비과세 식대 차감</span>
+            <span class="font-bold text-green-600">-${r.mealExempt.toLocaleString()}원</span>
+          </div>
+          <div class="flex justify-between text-sm pt-1 border-t border-gray-100">
+            <span class="text-gray-500">국민연금 (4.5%)</span>
+            <span class="font-bold text-red-500">-${r.pension.toLocaleString()}원</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">건강보험 (3.545%)</span>
+            <span class="font-bold text-red-500">-${r.health.toLocaleString()}원</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">고용보험 (0.9%)</span>
+            <span class="font-bold text-red-500">-${r.employment.toLocaleString()}원</span>
+          </div>
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">근로소득세 (3%)</span>
+            <span class="font-bold text-red-500">-${r.incomeTax.toLocaleString()}원</span>
+          </div>
+          <div class="flex justify-between text-sm pt-1.5 border-t-2 border-gray-200">
+            <span class="font-bold text-gray-700">총 공제액</span>
+            <span class="font-black text-red-500">-${r.totalDeduct.toLocaleString()}원</span>
+          </div>
+        </div>
+      </div>
+      <div class="mx-4 mb-4 border-2 border-gray-100 rounded-2xl overflow-hidden">
+        <div class="bg-gradient-to-r from-[#FF5722] to-[#FF8A50] px-4 py-4">
+          <p class="text-[10px] text-white/70 mb-1 font-medium">💰 월 실수령액</p>
+          <p class="text-2xl font-black text-white">${r.netPay.toLocaleString()}<span class="text-base font-bold ml-0.5">원</span></p>
+          ${r.isYearly ? `<p class="text-[11px] text-white/60 mt-1">연 실수령 약 ${(r.netPay * 12).toLocaleString()}원</p>` : ''}
+        </div>
+      </div>
+      <div class="mx-4 mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
+        <p class="text-xs font-bold text-amber-800 mb-1">⚠️ 임금 체불 신고 안내</p>
+        <p class="text-[11px] text-amber-700 leading-relaxed">체불 임금 발생 시 <strong>고용노동부 1350</strong> 또는 <strong>민원마당(minwon.moel.go.kr)</strong>에 이 정산서를 첨부하여 신고하세요. 3년 이내 소멸시효가 적용됩니다.</p>
+      </div>`;
+  }
+
+  // ──────────────────────────────────────
+  // 기간 일괄 등록
+  // ──────────────────────────────────────
+  function openBulkModal() {
+    document.getElementById('bulkModal').classList.remove('hidden');
+    document.getElementById('bulkModal').classList.add('flex');
+  }
+
+  function closeBulkModal() {
+    document.getElementById('bulkStartDate').value = '';
+    document.getElementById('bulkEndDate').value   = '';
+    document.getElementById('bulkStartTime').value = '09:00';
+    document.getElementById('bulkEndTime').value   = '18:00';
+    document.getElementById('bulkBreak').value     = '60';
+    document.querySelectorAll('.bulk-day-check').forEach(c => {
+      const dow = parseInt(c.dataset.dow, 10);
+      c.checked = dow >= 1 && dow <= 5;
+    });
+    document.getElementById('bulkModal').classList.add('hidden');
+    document.getElementById('bulkModal').classList.remove('flex');
+  }
+
+  function applyBulkRegister() {
+    const startStr = document.getElementById('bulkStartDate').value;
+    const endStr   = document.getElementById('bulkEndDate').value;
+    if (!startStr || !endStr) { showToast('시작일과 종료일을 입력해 주세요'); return; }
+
+    const startDate = new Date(startStr + 'T00:00:00');
+    const endDate   = new Date(endStr   + 'T00:00:00');
+    if (endDate < startDate) { showToast('종료일은 시작일 이후여야 합니다 ❌'); return; }
+
+    const startTime = document.getElementById('bulkStartTime').value;
+    const endTime   = document.getElementById('bulkEndTime').value;
+    const breakMin  = parseInt(document.getElementById('bulkBreak').value, 10) || 0;
+    const checkedDows = Array.from(document.querySelectorAll('.bulk-day-check'))
+      .filter(c => c.checked).map(c => parseInt(c.dataset.dow, 10));
+
+    let count = 0;
+    const cur = new Date(startDate);
+    while (cur <= endDate) {
+      if (checkedDows.includes(cur.getDay())) {
+        const dateStr = buildDateStr(cur.getFullYear(), cur.getMonth() + 1, cur.getDate());
+        state.workRecords[dateStr] = { start: startTime, end: endTime, break: breakMin };
+        count++;
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    saveToLocalStorage();
+    renderCalendar();
+    closeBulkModal();
+    showToast(`${count}일 일괄 등록 완료 ✅`);
+  }
+
+  // ──────────────────────────────────────
   // 결제 모달 (토스페이먼츠 스켈레톤)
   // ──────────────────────────────────────
   function openPaymentModal() {
@@ -968,9 +1265,28 @@
     document.getElementById('paymentModal').classList.remove('flex');
   }
 
+  function snapshotBeforePayment() {
+    const snap = JSON.stringify({
+      r: state.workRecords,
+      t: state.employmentType,
+      sa: state.salaryAmount,
+      sp: state.salaryPeriod,
+    });
+    localStorage.setItem('needon_freeze_backup', snap);
+  }
+
   async function initiatePayment() {
+    snapshotBeforePayment();
+
     // TODO: OWNER_KEY_INJECTION – Toss Payments (라이브 전환 시 test_ck_ → live_ck_ 로 교체)
     const CLIENT_KEY = 'test_ck_kYG57Eba3OKZ1jq2RLOw3pWDOxmA';
+
+    // Google Play Market 인앱 결제 분기
+    if (state.isAppMarketMode) {
+      // TODO: Google In-App Purchase placeholder – OWNER_KEY_INJECTION
+      return;
+    }
+
     try {
       if (typeof TossPayments === 'undefined') {
         showToast('결제 모듈 로딩 중입니다. 잠시 후 다시 시도해주세요.');
@@ -978,7 +1294,7 @@
       }
       const tossPayments = TossPayments(CLIENT_KEY);
       const payment = tossPayments.payment({
-        customerKey: currentUser?.uid || `GUEST_${Date.now()}`,
+        customerKey: (typeof currentUser !== 'undefined' && currentUser?.uid) || `GUEST_${Date.now()}`,
       });
       await payment.requestPayment({
         method: 'CARD',
@@ -1044,7 +1360,7 @@
   // 유틸리티
   // ──────────────────────────────────────
   function getWage() {
-    return parseInt(document.getElementById('hourlyWage').value) || 0;
+    return parseInt((document.getElementById('hourlyWage').value || '').replace(/,/g, ''), 10) || 0;
   }
 
   function buildDateStr(year, month, day) {
@@ -1091,6 +1407,29 @@
 
   loadFromLocalStorage();
   renderCalendar();
+
+  // 토스 결제 사후 복원
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      const backup = localStorage.getItem('needon_freeze_backup');
+      if (backup) {
+        try {
+          const d = JSON.parse(backup);
+          if (d.r)    state.workRecords    = d.r;
+          if (d.t)    state.employmentType = d.t;
+          if (d.sa != null) state.salaryAmount = d.sa;
+          if (d.sp)   state.salaryPeriod   = d.sp;
+          setEmploymentType(state.employmentType);
+          setSalaryPeriod(state.salaryPeriod);
+          renderCalendar();
+          showResults();
+          history.replaceState({}, '', window.location.pathname);
+          showToast('결제 완료! 정산서를 확인하세요 ✅');
+        } catch(e) {}
+      }
+    }
+  });
   </script>
 </body>
 </html>
