@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -409,20 +409,16 @@
     settled: false,
   };
 
-  // [GEMINI-PATCH] LocalStorage 자동 세이브 / 로드
   function saveToLocalStorage() {
     localStorage.setItem('needon_work_records', JSON.stringify(state.workRecords));
     localStorage.setItem('needon_employment_type', state.employmentType);
   }
 
   function loadFromLocalStorage() {
-    const savedRecords = localStorage.getItem('needon_work_records');
-    const savedType    = localStorage.getItem('needon_employment_type');
-    if (savedRecords) state.workRecords = JSON.parse(savedRecords);
-    if (savedType) {
-      state.employmentType = savedType;
-      setEmploymentType(savedType);
-    }
+    const r = localStorage.getItem('needon_work_records');
+    const t = localStorage.getItem('needon_employment_type');
+    if (r) state.workRecords = JSON.parse(r);
+    if (t) { state.employmentType = t; setEmploymentType(t); }
   }
 
   // ──────────────────────────────────────
@@ -434,7 +430,6 @@
     const passive = 'border-2 border-gray-200 text-gray-400 bg-white';
     document.getElementById('btnEmployee').className   = `py-2.5 rounded-xl text-sm font-bold transition-all ${type === 'employee'   ? active : passive}`;
     document.getElementById('btnFreelancer').className = `py-2.5 rounded-xl text-sm font-bold transition-all ${type === 'freelancer' ? active : passive}`;
-    saveToLocalStorage();
     renderMonthSummary();
   }
 
@@ -772,13 +767,6 @@
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 
-    // 카카오 애드핏 숨겨진 상태 렌더링 꼬임 방지
-    try {
-      if (window.adfit && typeof window.adfit.displayAd === 'function') {
-        window.adfit.displayAd('DAN-zOmdh3TxPuQBjrgK');
-      }
-    } catch(e) { console.log('AdFit reload waiting...'); }
-
     let remaining = 10;
     const ring    = document.getElementById('adRing');
     const numEl   = document.getElementById('adCountNum');
@@ -1083,18 +1071,15 @@
   }
 
   // ──────────────────────────────────────
-  // 초기화 및 이벤트 리스너 배선
+  // 초기화
   // ──────────────────────────────────────
   document.getElementById('hourlyWage').addEventListener('input', () => {
     renderMonthSummary();
     if (state.selectedDay) updateTimePreview();
   });
 
-  // localStorage 로드 후 달력 렌더링
-  document.addEventListener('DOMContentLoaded', () => {
-    loadFromLocalStorage();
-    renderCalendar();
-  });
+  loadFromLocalStorage();
+  renderCalendar();
   </script>
 </body>
 </html>
