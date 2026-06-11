@@ -211,24 +211,24 @@
       </div>
 
       <!-- 월 네비게이션 -->
-      <div class="flex items-center justify-between px-4 py-2">
+      <div class="flex items-center px-4 py-2 gap-2">
         <button onclick="changeMonth(-1)"
-          class="w-9 h-9 rounded-full bg-gray-50 hover:bg-gray-100 active:bg-gray-200 flex items-center justify-center transition-colors">
+          class="flex-shrink-0 w-9 h-9 rounded-full bg-gray-50 hover:bg-gray-100 active:bg-gray-200 flex items-center justify-center transition-colors">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2D1B69" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
           </svg>
         </button>
-        <div class="text-center">
-          <p id="calendarTitle" class="text-base font-black text-gray-900"></p>
-          <p id="monthSummary" class="text-[11px] text-[#FF5722] font-semibold mt-0.5 h-3.5"></p>
+        <div class="flex-1 min-w-0 text-center">
+          <p id="calendarTitle" class="text-base font-black text-gray-900 whitespace-nowrap"></p>
+          <p id="monthSummary" class="text-[11px] text-[#FF5722] font-semibold mt-0.5 h-3.5 whitespace-nowrap overflow-hidden text-ellipsis"></p>
         </div>
-        <div class="flex items-center gap-1.5">
+        <div class="flex-shrink-0 flex items-center gap-1.5">
           <button id="bulkBtn" onclick="openBulkModal()"
-            class="text-[11px] bg-purple-50 text-purple-700 font-bold px-2 py-1.5 rounded-lg border border-purple-100 active:bg-purple-100 transition-colors">
+            class="text-[11px] bg-purple-50 text-purple-700 font-bold px-2 py-1.5 rounded-lg border border-purple-100 active:bg-purple-100 transition-colors whitespace-nowrap">
             🗓️ 일괄
           </button>
           <button onclick="changeMonth(1)"
-            class="w-9 h-9 rounded-full bg-gray-50 hover:bg-gray-100 active:bg-gray-200 flex items-center justify-center transition-colors">
+            class="flex-shrink-0 w-9 h-9 rounded-full bg-gray-50 hover:bg-gray-100 active:bg-gray-200 flex items-center justify-center transition-colors">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#2D1B69" stroke-width="2.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
             </svg>
@@ -972,7 +972,7 @@
     const el   = document.getElementById('monthSummary');
     el.textContent = grossPay > 0
       ? `이번달 예상 급여 ${Math.round(grossPay).toLocaleString()}원`
-      : '날짜를 눌러 근무 시간을 입력하세요';
+      : '날짜를 탭해 기록하세요';
   }
 
   function renderWeekSummary(year, month) {
