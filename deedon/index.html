@@ -3,11 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="referrer" content="no-referrer-when-downgrade" />
   <title>NeeDON – 내 떼인 돈, 내가 찾는다</title>
   <script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
   <script src="https://js.tosspayments.com/v2/standard" async></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" async></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -69,6 +72,20 @@
     /* Scrollbar hiding */
     ::-webkit-scrollbar { display: none; }
     * { scrollbar-width: none; }
+
+    /* PC 사이드바 광고 */
+    #pc-sidebar-ad {
+      display: none;
+      position: fixed;
+      top: 76px;
+      right: max(8px, calc(50vw - 224px - 180px));
+      width: 160px;
+      flex-direction: column;
+      gap: 12px;
+    }
+    @media (min-width: 1024px) {
+      #pc-sidebar-ad { display: flex; }
+    }
   </style>
 </head>
 <body class="min-h-screen">
@@ -243,6 +260,19 @@
       <!-- 영수증 -->
       <div id="receipt" class="bg-white rounded-2xl shadow-sm overflow-hidden"></div>
 
+      <!-- 이미지 캡처/공유 버튼 -->
+      <button onclick="captureReceipt()"
+        class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white
+               py-4 rounded-2xl text-sm font-bold shadow-md
+               hover:brightness-110 active:scale-[0.97] active:brightness-90
+               transition-all duration-150 flex items-center justify-center gap-2">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+          <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2.2"/>
+        </svg>
+        이미지로 저장/공유 📸
+      </button>
+
       <!-- 노동청 다운로드 버튼 -->
       <button onclick="openPaymentModal()"
         class="w-full bg-gradient-to-r from-[#0F0A2A] to-[#2D1B69] text-white
@@ -256,7 +286,65 @@
       </button>
     </section>
 
+    <!-- ─── 푸터 (관리자 트리거) ─── -->
+    <footer class="text-center py-6 mt-2">
+      <div id="adminLogoBtn" onclick="handleAdminLogoClick()"
+        class="inline-flex items-center gap-1.5 cursor-pointer select-none opacity-40 hover:opacity-70 transition-opacity">
+        <div class="w-5 h-5 rounded-lg bg-[#FF5722] flex items-center justify-center">
+          <span class="text-white font-black text-[10px]">N</span>
+        </div>
+        <span class="text-xs font-black text-gray-400">NeeDON</span>
+      </div>
+      <p class="text-[10px] text-gray-300 mt-1">© 2025 NeeDON. 근로기준법 기준 자동 계산</p>
+    </footer>
+
   </main>
+
+  <!-- PC 사이드바 광고 -->
+  <aside id="pc-sidebar-ad">
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden p-2 text-center">
+      <p class="text-[9px] text-gray-300 mb-1.5 font-semibold">광고</p>
+      <!-- COUPANG_AD_HOLDER: 아래 div에 쿠팡 파트너스 광고 스크립트를 붙여넣으세요 -->
+      <div id="coupang-ad-slot" style="min-height:600px; display:flex; align-items:center; justify-content:center;">
+        <p class="text-[10px] text-gray-300">쿠팡 광고<br/>준비 중</p>
+      </div>
+      <!-- /COUPANG_AD_HOLDER -->
+    </div>
+  </aside>
+
+
+  <!-- ══════════════════════════════════════
+       ADMIN MODAL (운영자 데이터 편집기)
+  ══════════════════════════════════════ -->
+  <div id="adminModal" class="fixed inset-0 z-[80] hidden">
+    <div class="absolute inset-0 bg-black/85 backdrop-blur-sm" onclick="closeAdminModal()"></div>
+    <div class="absolute inset-x-4 top-1/2 -translate-y-1/2 max-w-md mx-auto bg-gray-900 rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <p class="text-[10px] text-gray-400 font-semibold tracking-wider uppercase">운영자 전용</p>
+          <h3 class="text-white font-black text-sm mt-0.5">🔧 데이터 편집기</h3>
+        </div>
+        <button onclick="closeAdminModal()" class="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <p class="text-[11px] text-gray-400 mb-2">workRecords JSON — 수정 후 Save 클릭</p>
+      <textarea id="adminJsonEditor" rows="10" spellcheck="false"
+        class="w-full bg-gray-800 text-green-300 text-[11px] font-mono rounded-xl p-3 outline-none resize-none border border-gray-700 focus:border-green-500 transition-colors"></textarea>
+      <div class="flex gap-2 mt-3">
+        <button onclick="saveAdminData()"
+          class="flex-1 bg-green-500 hover:bg-green-600 active:bg-green-700 text-white py-3 rounded-xl font-black text-sm transition-colors">
+          💾 Save &amp; Sync
+        </button>
+        <button onclick="closeAdminModal()"
+          class="px-5 bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl font-bold text-sm transition-colors">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
 
 
   <!-- ══════════════════════════════════════
@@ -514,6 +602,37 @@
   // ──────────────────────────────────────
   // 전역 상태
   // ──────────────────────────────────────
+  // ──────────────────────────────────────
+  // 뮤텍스 + 스냅샷 격리
+  // ──────────────────────────────────────
+  let isProcessing = false;
+  let _pendingSnap = null;
+
+  function acquireMutex() {
+    if (isProcessing) { showToast('처리 중입니다. 잠시 후 다시 시도해주세요.'); return false; }
+    isProcessing = true;
+    return true;
+  }
+  function releaseMutex() { isProcessing = false; }
+
+  // ──────────────────────────────────────
+  // self-healing localStorage 헬퍼
+  // ──────────────────────────────────────
+  function safeLocalGet(key, defaultVal) {
+    try {
+      const v = localStorage.getItem(key);
+      if (!v) return defaultVal;
+      return JSON.parse(v);
+    } catch(e) {
+      try { localStorage.removeItem(key); } catch(_) {}
+      return defaultVal;
+    }
+  }
+
+  const DEFAULT_SCHEMA = {
+    r: {}, t: 'employee', sa: 0, sp: 'yearly',
+  };
+
   const state = {
     currentDate: new Date(),
     workRecords: {},
@@ -538,25 +657,26 @@
   }
 
   function loadFromLocalStorage() {
-    const v2 = localStorage.getItem('needon_v2');
-    if (v2) {
-      try {
-        const d = JSON.parse(v2);
-        if (d.r)    state.workRecords    = d.r;
-        if (d.t)    state.employmentType = d.t;
-        if (d.sa != null) state.salaryAmount = d.sa;
-        if (d.sp)   state.salaryPeriod   = d.sp;
-        setEmploymentType(state.employmentType);
-        return;
-      } catch(e) {}
+    const d = safeLocalGet('needon_v2', null);
+    if (d) {
+      state.workRecords    = d.r  || {};
+      state.employmentType = d.t  || 'employee';
+      state.salaryAmount   = d.sa != null ? d.sa : 0;
+      state.salaryPeriod   = d.sp || 'yearly';
+      setEmploymentType(state.employmentType);
+      return;
     }
     // 레거시 폴백
-    try {
-      const r = localStorage.getItem('needon_work_records');
-      const t = localStorage.getItem('needon_employment_type');
-      if (r) state.workRecords = JSON.parse(r);
-      if (t) { state.employmentType = t; setEmploymentType(t); }
-    } catch(e) {}
+    const r = safeLocalGet('needon_work_records', null);
+    const t = safeLocalGet('needon_employment_type', null);
+    if (r) state.workRecords = r;
+    if (t) { state.employmentType = t; setEmploymentType(t); }
+    // 데이터가 전혀 없을 때 기본 스키마 seed injection
+    if (!r && !t) {
+      Object.assign(state, { workRecords: DEFAULT_SCHEMA.r, employmentType: DEFAULT_SCHEMA.t,
+        salaryAmount: DEFAULT_SCHEMA.sa, salaryPeriod: DEFAULT_SCHEMA.sp });
+      setEmploymentType(state.employmentType);
+    }
   }
 
   // ──────────────────────────────────────
@@ -734,12 +854,14 @@
 
   function saveWorkDay() {
     if (!state.selectedDay) return;
+    if (!acquireMutex()) return;
     state.workRecords[state.selectedDay] = {
       start: document.getElementById('startTime').value,
       end:   document.getElementById('endTime').value,
-      break: parseInt(document.getElementById('breakTime').value) || 0,
+      break: parseInt(document.getElementById('breakTime').value, 10) || 0,
     };
     saveToLocalStorage();
+    releaseMutex();
     closeDayModal();
     renderCalendar();
   }
@@ -917,16 +1039,21 @@
   // 광고 모달 + 정산 결과
   // ──────────────────────────────────────
   function startSettle() {
+    if (!acquireMutex()) return;
+
     if (state.employmentType === 'salary') {
       const amt = parseInt((document.getElementById('salaryAmountInput').value || '').replace(/,/g, ''), 10) || 0;
-      if (amt <= 0) { showToast('급여 금액을 입력해 주세요 💰'); return; }
+      if (amt <= 0) { releaseMutex(); showToast('급여 금액을 입력해 주세요 💰'); return; }
       state.salaryAmount = amt;
     } else {
       const d   = state.currentDate;
       const pfx = buildDateStr(d.getFullYear(), d.getMonth() + 1, 1).slice(0, 7);
       const count = Object.keys(state.workRecords).filter(k => k.startsWith(pfx)).length;
-      if (count === 0) { showToast('달력에서 근무 날짜를 먼저 입력해 주세요 📅'); return; }
+      if (count === 0) { releaseMutex(); showToast('달력에서 근무 날짜를 먼저 입력해 주세요 📅'); return; }
     }
+
+    // 실행 시점 스냅샷 격리
+    _pendingSnap = JSON.parse(JSON.stringify(state));
 
     // 광고 모달 표시
     const modal = document.getElementById('adModal');
@@ -936,12 +1063,11 @@
     let remaining = 10;
     const ring    = document.getElementById('adRing');
     const numEl   = document.getElementById('adCountNum');
-    const circumf = 226; // 2π × 36 ≈ 226
+    const circumf = 226;
 
     ring.style.strokeDashoffset = String(circumf);
 
     state.adTimer = setInterval(() => {
-      // 진행률 업데이트
       const elapsed  = 10 - remaining + 1;
       ring.style.strokeDashoffset = String(circumf - (circumf * elapsed / 10));
       numEl.textContent = remaining;
@@ -951,19 +1077,24 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         showResults();
+        releaseMutex();
       }
       remaining--;
     }, 1000);
   }
 
   function showResults() {
+    // 스냅샷 우선, 없으면 현재 state
+    const snap = _pendingSnap || JSON.parse(JSON.stringify(state));
+    _pendingSnap = null;
     state.settled = true;
-    if (state.employmentType === 'salary') {
-      const result = calcSalaryWorkerPay(state.salaryAmount, state.salaryPeriod === 'yearly');
+
+    if (snap.employmentType === 'salary') {
+      const result = calcSalaryWorkerPay(snap.salaryAmount, snap.salaryPeriod === 'yearly');
       document.getElementById('receipt').innerHTML = buildSalaryReceipt(result);
     } else {
-      const d = state.currentDate;
-      const result = calcMonthlyPay(d.getFullYear(), d.getMonth());
+      const d = new Date(snap.currentDate);
+      const result = calcMonthlyPayFromSnap(snap, d.getFullYear(), d.getMonth());
       document.getElementById('receipt').innerHTML = buildReceipt(d.getFullYear(), d.getMonth(), result);
     }
     document.getElementById('resultsSection').classList.remove('hidden');
@@ -1098,16 +1229,56 @@
       </div>
 
       <!-- 법적 고지 -->
-      <div class="mx-4 mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
+      <div class="mx-4 mb-3 bg-amber-50 border border-amber-200 rounded-xl p-3">
         <p class="text-xs font-bold text-amber-800 mb-1">⚠️ 임금 체불 신고 안내</p>
         <p class="text-[11px] text-amber-700 leading-relaxed">
           체불 임금 발생 시 <strong>고용노동부 1350</strong> 또는
           <strong>민원마당(minwon.moel.go.kr)</strong>에 이 정산서를 첨부하여 신고하세요.
           3년 이내 소멸시효가 적용됩니다.
         </p>
-      </div>`;
+      </div>
+
+      ${buildCpaButton()}`;
 
     return html;
+  }
+
+  function calcMonthlyPayFromSnap(snap, year, month) {
+    const wage  = parseInt((snap.hourlyWage || '10030').toString().replace(/,/g, ''), 10) || 10030;
+    const weeks = getWeeks(year, month);
+    let totalBasePay = 0, totalNightExtra = 0, totalHolidayPay = 0;
+    const dayDetails = [], weekDetails = [];
+    weeks.forEach((week, wi) => {
+      let weekHours = 0;
+      week.forEach(day => {
+        if (!day) return;
+        const dateStr = buildDateStr(year, month + 1, day);
+        const rec = snap.workRecords[dateStr];
+        if (!rec) return;
+        const { totalHours, nightHours } = calcHours(rec.start, rec.end, rec.break || 0);
+        const basePay    = totalHours * wage;
+        const nightExtra = nightHours * wage * 0.5;
+        totalBasePay    += basePay;
+        totalNightExtra += nightExtra;
+        weekHours       += totalHours;
+        dayDetails.push({ dateStr, day, start: rec.start, end: rec.end, breakMin: rec.break || 0,
+          totalHours, dayHours: totalHours - nightHours, nightHours, dailyPay: basePay + nightExtra });
+      });
+      let holidayPay = 0;
+      if (weekHours >= 15) {
+        const clampedHours = Math.min(weekHours, 40);
+        holidayPay = (clampedHours / 40) * 8 * wage;
+        totalHolidayPay += holidayPay;
+      }
+      if (weekHours > 0) weekDetails.push({ weekNum: wi + 1, weekHours, holidayPay });
+    });
+    const grossPay = totalBasePay + totalNightExtra + totalHolidayPay;
+    const taxRate  = snap.employmentType === 'freelancer' ? 0.033 : 0;
+    const taxAmount = grossPay * taxRate;
+    const netPay    = grossPay - taxAmount;
+    return { wage, grossPay, totalBasePay, totalNightExtra, totalHolidayPay, taxAmount, netPay,
+      reversedGross: taxRate > 0 && netPay > 0 ? netPay / (1 - taxRate) : grossPay,
+      dayDetails, weekDetails };
   }
 
   // ──────────────────────────────────────
@@ -1192,10 +1363,12 @@
           ${r.isYearly ? `<p class="text-[11px] text-white/60 mt-1">연 실수령 약 ${(r.netPay * 12).toLocaleString()}원</p>` : ''}
         </div>
       </div>
-      <div class="mx-4 mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
+      <div class="mx-4 mb-3 bg-amber-50 border border-amber-200 rounded-xl p-3">
         <p class="text-xs font-bold text-amber-800 mb-1">⚠️ 임금 체불 신고 안내</p>
         <p class="text-[11px] text-amber-700 leading-relaxed">체불 임금 발생 시 <strong>고용노동부 1350</strong> 또는 <strong>민원마당(minwon.moel.go.kr)</strong>에 이 정산서를 첨부하여 신고하세요. 3년 이내 소멸시효가 적용됩니다.</p>
-      </div>`;
+      </div>
+
+      ${buildCpaButton()}`;
   }
 
   // ──────────────────────────────────────
@@ -1328,11 +1501,14 @@
   firebase.initializeApp(firebaseConfig);
   const auth     = firebase.auth();
   const provider = new firebase.auth.GoogleAuthProvider();
+  let db = null;
+  try { db = firebase.firestore(); } catch(e) {}
+
+  let currentUser = null;
 
   function loginWithGoogle() {
-    auth.signInWithPopup(provider)
-      .then(result => { currentUser = result.user; updateLoginUI(); showToast(`${currentUser.displayName}님, 환영합니다! 👋`); })
-      .catch(err   => { console.error(err); showToast('로그인 중 오류가 발생했습니다.'); });
+    auth.signInWithRedirect(provider)
+      .catch(err => { console.error(err); showToast('로그인 중 오류가 발생했습니다.'); });
   }
 
   function logoutUser() {
@@ -1344,17 +1520,109 @@
     updateLoginUI();
   });
 
-  let currentUser = null;
+  // Redirect 복귀 처리
+  auth.getRedirectResult().then(result => {
+    if (result && result.user) {
+      currentUser = result.user;
+      updateLoginUI();
+      showToast(`${currentUser.displayName}님, 환영합니다! 👋`);
+    }
+  }).catch(err => console.error('getRedirectResult:', err));
 
   function updateLoginUI() {
     const btn = document.getElementById('loginBtn');
-    btn.textContent = currentUser ? (currentUser.displayName || '내 계정') : '로그인';
+    if (btn) btn.textContent = currentUser ? (currentUser.displayName || '내 계정') : '로그인';
   }
 
   document.getElementById('loginBtn').onclick = () => {
     if (currentUser) logoutUser();
     else loginWithGoogle();
   };
+
+  // ──────────────────────────────────────
+  // 관리자 모드 (로고 5회 클릭)
+  // ──────────────────────────────────────
+  let _adminClicks = 0, _adminTimer = null;
+  function handleAdminLogoClick() {
+    _adminClicks++;
+    clearTimeout(_adminTimer);
+    if (_adminClicks >= 5) {
+      _adminClicks = 0;
+      openAdminModal();
+    } else {
+      _adminTimer = setTimeout(() => { _adminClicks = 0; }, 2000);
+    }
+  }
+
+  function openAdminModal() {
+    document.getElementById('adminJsonEditor').value =
+      JSON.stringify(state.workRecords, null, 2);
+    document.getElementById('adminModal').classList.remove('hidden');
+    document.getElementById('adminModal').classList.add('flex');
+  }
+
+  function closeAdminModal() {
+    document.getElementById('adminModal').classList.add('hidden');
+    document.getElementById('adminModal').classList.remove('flex');
+  }
+
+  function saveAdminData() {
+    try {
+      const parsed = JSON.parse(document.getElementById('adminJsonEditor').value);
+      state.workRecords = parsed;
+      saveToLocalStorage();
+      renderCalendar();
+      // Firestore 동기화 (db 및 로그인 상태 확인)
+      if (db && currentUser) {
+        db.collection('users').doc(currentUser.uid)
+          .set({ workRecords: parsed, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
+          .catch(e => console.error('Firestore sync:', e));
+      }
+      showToast('데이터 저장 완료 ✅');
+      closeAdminModal();
+    } catch(e) {
+      showToast('JSON 파싱 오류: 형식을 확인해 주세요 ❌');
+    }
+  }
+
+  // ──────────────────────────────────────
+  // 이미지 캡처/공유 (html2canvas)
+  // ──────────────────────────────────────
+  async function captureReceipt() {
+    if (typeof html2canvas === 'undefined') {
+      showToast('캡처 모듈 로딩 중입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+    try {
+      showToast('정산서 캡처 중...');
+      const el = document.getElementById('receipt');
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+      const link = document.createElement('a');
+      const today = new Date().toLocaleDateString('ko-KR').replace(/\. /g, '-').replace('.', '');
+      link.download = `NeeDON_정산서_${today}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      showToast('정산서 이미지 저장 완료 📸');
+    } catch(e) {
+      showToast('캡처 중 오류가 발생했습니다.');
+      console.error(e);
+    }
+  }
+
+  // ──────────────────────────────────────
+  // CPA 고단가 버튼 빌더 (링크프라이스/텐핑)
+  // ──────────────────────────────────────
+  const CPA_LINK = 'https://link.coupang.com/OWNER_CPA_LINK_HERE'; // TODO: 링크프라이스/텐핑 CPA 링크 교체
+
+  function buildCpaButton() {
+    return `
+      <a href="${CPA_LINK}" target="_blank" rel="noopener noreferrer"
+        class="block mx-4 mb-4 bg-gradient-to-r from-[#FF3B30] to-[#FF6B35] rounded-2xl p-4 shadow-lg active:scale-[0.98] transition-transform text-center no-underline">
+        <p class="text-white text-[11px] font-semibold opacity-80 mb-0.5">💸 정산액이 부족하다면?</p>
+        <p class="text-white font-black text-base leading-tight">지금 바로 5천 원 벌기 →</p>
+        <p class="text-white/60 text-[10px] mt-1">앱 설치만 해도 포인트 지급 · 무료 참여</p>
+      </a>`;
+  }
 
   // ──────────────────────────────────────
   // 유틸리티
