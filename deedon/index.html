@@ -220,16 +220,22 @@
 
     <!-- ─── STEP 2: 달력 ─── -->
     <section id="calendarSection" class="bg-white rounded-2xl shadow-sm overflow-hidden">
-      <div class="px-4 pt-4 pb-1 flex items-center gap-2">
-        <span class="w-5 h-5 rounded-full bg-[#2D1B69] text-white text-[10px] font-black flex items-center justify-center">2</span>
-        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">근무 날짜 입력</h2>
+      <div class="px-4 pt-4 pb-1 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-5 h-5 rounded-full bg-[#2D1B69] text-white text-[10px] font-black flex items-center justify-center">2</span>
+          <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">근무 날짜 입력</h2>
+        </div>
+        <button onclick="showOnboarding()" title="사용법 보기"
+          class="w-6 h-6 rounded-full bg-purple-100 text-purple-600 text-xs font-black flex items-center justify-center hover:bg-purple-200 transition-colors">
+          ?
+        </button>
       </div>
 
       <!-- 온보딩 3단계 가이드 (최초 1회 노출) -->
       <div id="onboardingGuide" class="mx-4 mb-2 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-3 border border-purple-100/70">
         <div class="flex items-center justify-between mb-1.5">
           <p class="text-[11px] font-black text-purple-700">📌 이렇게 사용하세요</p>
-          <button onclick="document.getElementById('onboardingGuide').remove(); localStorage.setItem('needon_onboard','1');"
+          <button onclick="document.getElementById('onboardingGuide').classList.add('hidden'); localStorage.setItem('needon_onboard','1');"
             class="text-[10px] text-purple-400 font-bold">닫기</button>
         </div>
         <div class="flex gap-2 text-[10px] text-purple-600/80">
@@ -292,6 +298,15 @@
 
       <!-- 달력 그리드 -->
       <div id="calendarGrid" class="grid grid-cols-7 px-2 pb-2 gap-px"></div>
+
+      <!-- 일괄 등록 배너 -->
+      <div class="px-3 pt-1 pb-2">
+        <button onclick="openBulkModal()"
+          class="w-full bg-gradient-to-r from-purple-600 to-[#2D1B69] text-white rounded-2xl py-3 font-black text-sm flex items-center justify-center gap-2 shadow-sm active:scale-[0.98] transition-all">
+          <span>🗓️ 여러 날 한번에 등록하기</span>
+          <span class="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full font-bold">추천</span>
+        </button>
+      </div>
 
       <!-- 주차별 요약 -->
       <div id="weekSummary" class="px-3 pb-3 space-y-1.5"></div>
@@ -492,9 +507,9 @@
   ══════════════════════════════════════ -->
   <div id="bulkModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeBulkModal()"></div>
-    <div class="absolute bottom-0 inset-x-0 max-w-md mx-auto bg-white rounded-t-3xl slide-panel safe-bottom">
-      <div class="p-5 pb-8">
-        <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5"></div>
+    <div class="absolute bottom-0 inset-x-0 max-w-md mx-auto bg-white rounded-t-3xl safe-bottom slide-panel" style="max-height:92vh;overflow-y:auto;">
+      <div class="p-5 pb-10">
+        <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-base font-black text-gray-900">🗓️ 기간 일괄 등록</h3>
           <button onclick="closeBulkModal()" class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
@@ -503,51 +518,104 @@
             </svg>
           </button>
         </div>
+
         <div class="space-y-4">
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-bold text-gray-500 mb-1.5">시작일</label>
-              <input id="bulkStartDate" type="date"
-                class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-gray-500 mb-1.5">종료일</label>
-              <input id="bulkEndDate" type="date"
-                class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-bold text-gray-500 mb-1.5">출근 시간</label>
-              <input id="bulkStartTime" type="time" value="09:00"
-                class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-gray-500 mb-1.5">퇴근 시간</label>
-              <input id="bulkEndTime" type="time" value="18:00"
-                class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
-            </div>
-          </div>
+          <!-- ① 근무 기간 -->
           <div>
-            <label class="block text-xs font-bold text-gray-500 mb-1.5">휴게 시간 (분)</label>
-            <input id="bulkBreak" type="number" value="60" min="0" max="480" step="30" inputmode="numeric"
-              class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-4 py-2.5 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-500 mb-2">적용 요일</label>
-            <div class="flex gap-3 flex-wrap">
-              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="1" checked style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-gray-700">월</span></label>
-              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="2" checked style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-gray-700">화</span></label>
-              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="3" checked style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-gray-700">수</span></label>
-              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="4" checked style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-gray-700">목</span></label>
-              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="5" checked style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-gray-700">금</span></label>
-              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="6" style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-blue-400">토</span></label>
-              <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="bulk-day-check" data-dow="0" style="accent-color:#2D1B69;width:16px;height:16px;"/><span class="text-sm font-bold text-red-400">일</span></label>
+            <label class="block text-xs font-bold text-gray-500 mb-1.5">📅 근무 기간</label>
+            <div class="grid grid-cols-2 gap-3">
+              <input id="bulkStartDate" type="date" onchange="renderBulkPreview()"
+                class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
+              <input id="bulkEndDate" type="date" onchange="renderBulkPreview()"
+                class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
             </div>
           </div>
+
+          <!-- ② 근무 요일 -->
+          <div>
+            <label class="block text-xs font-bold text-gray-500 mb-2">📆 근무 요일</label>
+            <div class="grid grid-cols-7 gap-1.5">
+              <label class="flex flex-col items-center gap-1 cursor-pointer">
+                <input type="checkbox" class="bulk-day-check" data-dow="1" checked onchange="renderBulkPreview()" style="accent-color:#2D1B69;width:18px;height:18px;"/>
+                <span class="text-xs font-bold text-gray-700">월</span>
+              </label>
+              <label class="flex flex-col items-center gap-1 cursor-pointer">
+                <input type="checkbox" class="bulk-day-check" data-dow="2" checked onchange="renderBulkPreview()" style="accent-color:#2D1B69;width:18px;height:18px;"/>
+                <span class="text-xs font-bold text-gray-700">화</span>
+              </label>
+              <label class="flex flex-col items-center gap-1 cursor-pointer">
+                <input type="checkbox" class="bulk-day-check" data-dow="3" checked onchange="renderBulkPreview()" style="accent-color:#2D1B69;width:18px;height:18px;"/>
+                <span class="text-xs font-bold text-gray-700">수</span>
+              </label>
+              <label class="flex flex-col items-center gap-1 cursor-pointer">
+                <input type="checkbox" class="bulk-day-check" data-dow="4" checked onchange="renderBulkPreview()" style="accent-color:#2D1B69;width:18px;height:18px;"/>
+                <span class="text-xs font-bold text-gray-700">목</span>
+              </label>
+              <label class="flex flex-col items-center gap-1 cursor-pointer">
+                <input type="checkbox" class="bulk-day-check" data-dow="5" checked onchange="renderBulkPreview()" style="accent-color:#2D1B69;width:18px;height:18px;"/>
+                <span class="text-xs font-bold text-gray-700">금</span>
+              </label>
+              <label class="flex flex-col items-center gap-1 cursor-pointer">
+                <input type="checkbox" class="bulk-day-check" data-dow="6" onchange="renderBulkPreview()" style="accent-color:#2D1B69;width:18px;height:18px;"/>
+                <span class="text-xs font-bold text-blue-400">토</span>
+              </label>
+              <label class="flex flex-col items-center gap-1 cursor-pointer">
+                <input type="checkbox" class="bulk-day-check" data-dow="0" onchange="renderBulkPreview()" style="accent-color:#2D1B69;width:18px;height:18px;"/>
+                <span class="text-xs font-bold text-red-400">일</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- ③ 시간 설정 방식 토글 -->
+          <div>
+            <label class="block text-xs font-bold text-gray-500 mb-2">⏰ 시간 설정 방식</label>
+            <div class="grid grid-cols-2 gap-2 mb-3">
+              <button id="bulkTimeModeAllBtn" onclick="setBulkTimeMode('all')"
+                class="py-2.5 rounded-xl text-sm font-black border-2 border-[#2D1B69] bg-[#2D1B69] text-white transition-all">
+                모두 같은 시간
+              </button>
+              <button id="bulkTimeModeCustomBtn" onclick="setBulkTimeMode('custom')"
+                class="py-2.5 rounded-xl text-sm font-black border-2 border-gray-200 text-gray-400 bg-white transition-all">
+                날짜별 다른 시간
+              </button>
+            </div>
+            <!-- 모두 같은 시간 입력 -->
+            <div id="bulkTimeAllSection">
+              <div class="grid grid-cols-2 gap-3 mb-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-400 mb-1">출근</label>
+                  <input id="bulkStartTime" type="time" value="09:00" onchange="renderBulkPreview()"
+                    class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-2 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-gray-400 mb-1">퇴근</label>
+                  <input id="bulkEndTime" type="time" value="18:00" onchange="renderBulkPreview()"
+                    class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-2 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
+                </div>
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-gray-400 mb-1">휴게 (분)</label>
+                <input id="bulkBreak" type="number" value="60" min="0" max="480" step="30" inputmode="numeric"
+                  class="w-full border-2 border-gray-100 focus:border-[#2D1B69] rounded-xl px-3 py-2 text-sm font-bold text-gray-900 bg-gray-50 focus:bg-white outline-none transition-all"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- ④ 날짜 미리보기 (제외 선택 + 날짜별 시간 입력) -->
+          <div id="bulkPreview" class="hidden">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-xs font-bold text-gray-500">
+                📋 <span id="bulkPreviewCount">0</span>일 등록 예정
+              </p>
+              <p class="text-[10px] text-gray-400">탭하면 해당 날짜 제외/복원</p>
+            </div>
+            <div id="bulkPreviewList"></div>
+          </div>
+
+          <!-- 등록 버튼 -->
           <button onclick="applyBulkRegister()"
             class="w-full bg-gradient-to-r from-[#2D1B69] to-[#0F0A2A] text-white py-4 rounded-2xl font-black text-sm shadow-md active:scale-[0.98] transition-all">
-            일괄 등록하기
+            <span id="bulkApplyBtnText">일괄 등록하기</span>
           </button>
         </div>
       </div>
@@ -1717,12 +1785,20 @@
   // ──────────────────────────────────────
   // 기간 일괄 등록
   // ──────────────────────────────────────
+  // ── 일괄 모달 상태 ──
+  let _bulkTimeMode  = 'all';   // 'all' | 'custom'
+  let _bulkExcluded  = new Set();
+  const _DOW_NAMES   = ['일','월','화','수','목','금','토'];
+  const _DOW_COLORS  = ['text-red-400','text-gray-700','text-gray-700','text-gray-700','text-gray-700','text-gray-700','text-blue-400'];
+
   function openBulkModal() {
     document.getElementById('bulkModal').classList.remove('hidden');
     document.getElementById('bulkModal').classList.add('flex');
   }
 
   function closeBulkModal() {
+    _bulkExcluded.clear();
+    _bulkTimeMode = 'all';
     document.getElementById('bulkStartDate').value = '';
     document.getElementById('bulkEndDate').value   = '';
     document.getElementById('bulkStartTime').value = '09:00';
@@ -1732,35 +1808,161 @@
       const dow = parseInt(c.dataset.dow, 10);
       c.checked = dow >= 1 && dow <= 5;
     });
+    // 모드 버튼 초기화
+    document.getElementById('bulkTimeModeAllBtn').className    = 'py-2.5 rounded-xl text-sm font-black border-2 border-[#2D1B69] bg-[#2D1B69] text-white transition-all';
+    document.getElementById('bulkTimeModeCustomBtn').className = 'py-2.5 rounded-xl text-sm font-black border-2 border-gray-200 text-gray-400 bg-white transition-all';
+    document.getElementById('bulkTimeAllSection').classList.remove('hidden');
+    document.getElementById('bulkPreview').classList.add('hidden');
     document.getElementById('bulkModal').classList.add('hidden');
     document.getElementById('bulkModal').classList.remove('flex');
   }
 
-  function applyBulkRegister() {
+  function setBulkTimeMode(mode) {
+    _bulkTimeMode = mode;
+    const allBtn    = document.getElementById('bulkTimeModeAllBtn');
+    const customBtn = document.getElementById('bulkTimeModeCustomBtn');
+    const allSection = document.getElementById('bulkTimeAllSection');
+    const activeClass   = 'py-2.5 rounded-xl text-sm font-black border-2 border-[#2D1B69] bg-[#2D1B69] text-white transition-all';
+    const inactiveClass = 'py-2.5 rounded-xl text-sm font-black border-2 border-gray-200 text-gray-400 bg-white transition-all';
+    if (mode === 'all') {
+      allBtn.className    = activeClass;
+      customBtn.className = inactiveClass;
+      allSection.classList.remove('hidden');
+    } else {
+      allBtn.className    = inactiveClass;
+      customBtn.className = activeClass;
+      allSection.classList.add('hidden');
+    }
+    renderBulkPreview();
+  }
+
+  function getBulkDates() {
     const startStr = document.getElementById('bulkStartDate').value;
     const endStr   = document.getElementById('bulkEndDate').value;
-    if (!startStr || !endStr) { showToast('시작일과 종료일을 입력해 주세요'); return; }
-
+    if (!startStr || !endStr) return [];
     const startDate = new Date(startStr + 'T00:00:00');
     const endDate   = new Date(endStr   + 'T00:00:00');
-    if (endDate < startDate) { showToast('종료일은 시작일 이후여야 합니다 ❌'); return; }
-
-    const startTime = document.getElementById('bulkStartTime').value;
-    const endTime   = document.getElementById('bulkEndTime').value;
-    const breakMin  = parseInt(document.getElementById('bulkBreak').value, 10) || 0;
+    if (endDate < startDate) return [];
     const checkedDows = Array.from(document.querySelectorAll('.bulk-day-check'))
       .filter(c => c.checked).map(c => parseInt(c.dataset.dow, 10));
-
-    let count = 0;
+    const dates = [];
     const cur = new Date(startDate);
     while (cur <= endDate) {
       if (checkedDows.includes(cur.getDay())) {
-        const dateStr = buildDateStr(cur.getFullYear(), cur.getMonth() + 1, cur.getDate());
-        state.workRecords[dateStr] = { start: startTime, end: endTime, break: breakMin };
-        count++;
+        dates.push(buildDateStr(cur.getFullYear(), cur.getMonth() + 1, cur.getDate()));
       }
       cur.setDate(cur.getDate() + 1);
     }
+    return dates;
+  }
+
+  function renderBulkPreview() {
+    const dates = getBulkDates();
+    const preview   = document.getElementById('bulkPreview');
+    const list      = document.getElementById('bulkPreviewList');
+    const countEl   = document.getElementById('bulkPreviewCount');
+    const applyBtn  = document.getElementById('bulkApplyBtnText');
+
+    if (dates.length === 0) {
+      preview.classList.add('hidden');
+      applyBtn.textContent = '일괄 등록하기';
+      return;
+    }
+
+    const active = dates.filter(d => !_bulkExcluded.has(d)).length;
+    countEl.textContent  = active;
+    applyBtn.textContent = `${active}일 일괄 등록하기`;
+    preview.classList.remove('hidden');
+
+    if (_bulkTimeMode === 'all') {
+      // 칩 형태 — 탭 시 제외/복원
+      const defaultSt  = document.getElementById('bulkStartTime').value || '09:00';
+      const defaultEt  = document.getElementById('bulkEndTime').value   || '18:00';
+      const defaultBrk = document.getElementById('bulkBreak').value     || '60';
+      list.innerHTML = `
+        <div class="flex flex-wrap gap-1.5 mb-2">
+          ${dates.map(d => {
+            const [,m, day] = d.split('-');
+            const dow     = new Date(d + 'T00:00:00').getDay();
+            const excl    = _bulkExcluded.has(d);
+            return `<button type="button" onclick="toggleBulkExclude('${d}')"
+              class="px-2 py-1 rounded-lg text-[11px] font-bold border-2 transition-all
+              ${excl
+                ? 'border-gray-200 bg-gray-50 text-gray-300 line-through'
+                : 'border-purple-200 bg-purple-50 text-purple-700'}">
+              ${parseInt(m)}/${parseInt(day)}<span class="${_DOW_COLORS[dow]}">(${_DOW_NAMES[dow]})</span>
+              ${excl ? '✕' : ''}
+            </button>`;
+          }).join('')}
+        </div>
+        <p class="text-[10px] text-gray-400">모두 ${defaultSt}~${defaultEt} / 휴게 ${defaultBrk}분 적용 · 탭하면 해당 날짜 제외</p>`;
+    } else {
+      // 날짜별 시간 입력 리스트
+      list.innerHTML = `
+        <div class="rounded-2xl border border-gray-100 overflow-hidden">
+          ${dates.map((d, i) => {
+            const [,m, day] = d.split('-');
+            const dow   = new Date(d + 'T00:00:00').getDay();
+            const excl  = _bulkExcluded.has(d);
+            const bg    = i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50';
+            return `
+            <div class="flex items-center gap-2 px-3 py-2 ${bg}${excl ? ' opacity-40' : ''}">
+              <button type="button" onclick="toggleBulkExclude('${d}')"
+                class="w-[52px] flex-shrink-0 text-left">
+                <span class="text-xs font-black ${_DOW_COLORS[dow]}">${parseInt(m)}/${parseInt(day)}(${_DOW_NAMES[dow]})</span>
+              </button>
+              <input type="time" id="bst_${d}" value="09:00" ${excl ? 'disabled' : ''}
+                class="flex-1 min-w-0 border border-gray-200 rounded-lg px-1.5 py-1 text-xs font-bold bg-white outline-none ${excl ? 'opacity-40' : ''}"/>
+              <span class="text-gray-300 text-[10px] flex-shrink-0">~</span>
+              <input type="time" id="bet_${d}" value="18:00" ${excl ? 'disabled' : ''}
+                class="flex-1 min-w-0 border border-gray-200 rounded-lg px-1.5 py-1 text-xs font-bold bg-white outline-none ${excl ? 'opacity-40' : ''}"/>
+              <input type="number" id="bbk_${d}" value="60" min="0" max="480" step="30" inputmode="numeric" ${excl ? 'disabled' : ''}
+                placeholder="휴게"
+                class="w-10 flex-shrink-0 border border-gray-200 rounded-lg px-1 py-1 text-[11px] font-bold bg-white outline-none text-center ${excl ? 'opacity-40' : ''}"/>
+              <span class="text-[9px] text-gray-300 flex-shrink-0">분</span>
+              ${excl
+                ? `<button type="button" onclick="toggleBulkExclude('${d}')" class="text-[10px] text-purple-400 font-bold flex-shrink-0">복원</button>`
+                : `<button type="button" onclick="toggleBulkExclude('${d}')" class="text-[10px] text-red-300 font-bold flex-shrink-0">제외</button>`}
+            </div>`;
+          }).join('')}
+        </div>`;
+    }
+  }
+
+  function toggleBulkExclude(dateStr) {
+    if (_bulkExcluded.has(dateStr)) {
+      _bulkExcluded.delete(dateStr);
+    } else {
+      _bulkExcluded.add(dateStr);
+    }
+    renderBulkPreview();
+  }
+
+  function applyBulkRegister() {
+    const dates = getBulkDates();
+    if (dates.length === 0) { showToast('시작일과 종료일을 입력해 주세요'); return; }
+
+    let count = 0;
+    dates.forEach(d => {
+      if (_bulkExcluded.has(d)) return;
+
+      if (_bulkTimeMode === 'all') {
+        const st  = document.getElementById('bulkStartTime').value || '09:00';
+        const et  = document.getElementById('bulkEndTime').value   || '18:00';
+        const brk = parseInt(document.getElementById('bulkBreak').value, 10) || 0;
+        state.workRecords[d] = { start: st, end: et, break: brk };
+      } else {
+        const stEl  = document.getElementById('bst_' + d);
+        const etEl  = document.getElementById('bet_' + d);
+        const brkEl = document.getElementById('bbk_' + d);
+        state.workRecords[d] = {
+          start: stEl  ? stEl.value  || '09:00' : '09:00',
+          end:   etEl  ? etEl.value  || '18:00' : '18:00',
+          break: brkEl ? parseInt(brkEl.value, 10) || 0 : 0,
+        };
+      }
+      count++;
+    });
 
     saveToLocalStorage();
     renderCalendar();
@@ -2049,11 +2251,17 @@
   renderCalendar();
 
   // 토스 결제 사후 복원
+  function showOnboarding() {
+    localStorage.removeItem('needon_onboard');
+    const og = document.getElementById('onboardingGuide');
+    if (og) og.classList.remove('hidden');
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
-    // 온보딩 가이드 — 이미 닫은 경우 바로 제거
+    // 온보딩 가이드 — 이미 닫은 경우 숨김
     if (localStorage.getItem('needon_onboard') === '1') {
       const og = document.getElementById('onboardingGuide');
-      if (og) og.remove();
+      if (og) og.classList.add('hidden');
     }
 
     const params = new URLSearchParams(window.location.search);
