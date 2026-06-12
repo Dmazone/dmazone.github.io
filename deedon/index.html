@@ -160,6 +160,21 @@
           <p class="text-[11px] text-gray-400 mt-1 pl-1">2025년 법정 최저시급 10,030원</p>
         </div>
 
+        <!-- 실제 받은 금액 (알바/프리랜서 탭 선택 입력) -->
+        <div id="actualPayArea">
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">
+            실제 받은 금액
+            <span class="text-[11px] text-gray-400 font-normal ml-1">(선택 · 입력 시 체불액 자동 계산)</span>
+          </label>
+          <div class="relative">
+            <input id="actualPayInput" type="text" inputmode="numeric" placeholder="0"
+              class="w-full border-2 border-red-100 focus:border-red-400 rounded-xl px-4 py-3 pr-10
+                     text-xl font-black text-gray-900 bg-red-50/50 focus:bg-white outline-none transition-all" />
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-red-300 font-medium pointer-events-none">원</span>
+          </div>
+          <p class="text-[11px] text-red-400 mt-1 pl-1">💸 비워두면 체불 계산 없이 받아야 할 총액만 표시</p>
+        </div>
+
         <!-- 직장인 급여 입력 (salary 탭 전용) -->
         <div id="salaryInputArea" class="hidden">
           <label class="block text-sm font-semibold text-gray-700 mb-1.5">세전 급여</label>
@@ -210,6 +225,34 @@
         <h2 class="text-xs font-bold text-gray-400 uppercase tracking-wider">근무 날짜 입력</h2>
       </div>
 
+      <!-- 온보딩 3단계 가이드 (최초 1회 노출) -->
+      <div id="onboardingGuide" class="mx-4 mb-2 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-3 border border-purple-100/70">
+        <div class="flex items-center justify-between mb-1.5">
+          <p class="text-[11px] font-black text-purple-700">📌 이렇게 사용하세요</p>
+          <button onclick="document.getElementById('onboardingGuide').remove(); localStorage.setItem('needon_onboard','1');"
+            class="text-[10px] text-purple-400 font-bold">닫기</button>
+        </div>
+        <div class="flex gap-2 text-[10px] text-purple-600/80">
+          <div class="flex flex-col items-center gap-0.5 flex-1 text-center">
+            <span class="text-base">👆</span>
+            <span class="font-bold">날짜 탭</span>
+            <span>근무한 날짜를 달력에서 탭해요</span>
+          </div>
+          <div class="w-px bg-purple-200/60 self-stretch"></div>
+          <div class="flex flex-col items-center gap-0.5 flex-1 text-center">
+            <span class="text-base">⏰</span>
+            <span class="font-bold">시간 입력</span>
+            <span>출퇴근·휴게 시간을 저장해요</span>
+          </div>
+          <div class="w-px bg-purple-200/60 self-stretch"></div>
+          <div class="flex flex-col items-center gap-0.5 flex-1 text-center">
+            <span class="text-base">💰</span>
+            <span class="font-bold">정산 확인</span>
+            <span>하단 버튼으로 결과를 확인해요</span>
+          </div>
+        </div>
+      </div>
+
       <!-- 월 네비게이션 -->
       <div class="flex items-center px-4 py-2 gap-2">
         <button onclick="changeMonth(-1)"
@@ -257,7 +300,7 @@
     <!-- ─── 모바일 제휴 광고 배너 (lg 미만만 노출) ─── -->
     <div class="lg:hidden grid grid-cols-2 gap-2">
       <!-- 텐핑 CPA – 머니트리카드 -->
-      <a href="https://iryan.kr/t8gpvmwwi" target="_blank" rel="noopener noreferrer"
+      <a href="https://www.moneytreecard.co.kr/?type=B&id=HCOSXMUILM" target="_blank" rel="noopener noreferrer"
         class="bg-gradient-to-b from-[#1a56db] to-[#0ea5e9] rounded-2xl p-3 no-underline flex flex-col items-center justify-center gap-1.5" style="min-height:110px;">
         <span style="font-size:24px">💳</span>
         <p class="text-white font-black text-[11px] leading-tight text-center">머니트리카드<br/>무료 신청</p>
@@ -273,13 +316,13 @@
     <p class="lg:hidden text-[8px] text-gray-300 text-center -mt-1">이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p>
 
     <!-- ─── CTA 버튼 ─── -->
-    <button onclick="startSettle()"
+    <button id="ctaBtn" onclick="startSettle()"
       class="w-full bg-gradient-to-r from-[#FF5722] to-[#FF8A50] text-white
              py-5 rounded-2xl text-[15px] font-black shadow-lg
              hover:shadow-xl hover:brightness-105 active:scale-[0.97] active:brightness-95
              transition-all duration-150 flex items-center justify-center gap-2">
       <span class="text-lg">💰</span>
-      내 떼인 돈 최종 정산하기
+      <span id="ctaBtnText">내 떼인 돈 최종 정산하기</span>
     </button>
 
     <!-- ─── 메인 광고 배너 (항상 노출) ─── -->
@@ -332,7 +375,7 @@
       </button>
 
       <!-- ③ CPA 긴급 (지금 행동 유발) -->
-      <a href="https://iryan.kr/t8gpvmwwi" target="_blank" rel="noopener noreferrer"
+      <a href="https://www.moneytreecard.co.kr/?type=B&id=HCOSXMUILM" target="_blank" rel="noopener noreferrer"
         class="block w-full rounded-2xl overflow-hidden no-underline
                active:scale-[0.97] transition-transform shadow-lg"
         style="background: linear-gradient(135deg,#dc2626 0%,#ea580c 50%,#f97316 100%);
@@ -379,7 +422,7 @@
   <aside id="pc-sidebar-left">
     <div class="bg-white rounded-xl shadow-sm overflow-hidden p-2 text-center">
       <p class="text-[9px] text-gray-300 mb-1.5 font-semibold">광고</p>
-      <a href="https://iryan.kr/t8gpvmwwi" target="_blank" rel="noopener noreferrer"
+      <a href="https://www.moneytreecard.co.kr/?type=B&id=HCOSXMUILM" target="_blank" rel="noopener noreferrer"
         class="block no-underline bg-gradient-to-b from-[#1a56db] to-[#0ea5e9] rounded-xl"
         style="min-height:580px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:16px 8px;">
         <span style="font-size:38px">💳</span>
@@ -561,10 +604,10 @@
           <div id="timePreview" class="bg-gray-50 rounded-2xl p-4 text-sm"></div>
 
           <!-- 저장 / 삭제 -->
-          <div class="grid grid-cols-2 gap-3 pt-1">
-            <button onclick="deleteWorkDay()"
+          <div id="dayModalBtnRow" class="grid gap-3 pt-1">
+            <button id="deleteDayBtn" onclick="deleteWorkDay()"
               class="py-3.5 rounded-xl border-2 border-red-100 text-red-400 font-bold text-sm
-                     hover:bg-red-50 active:bg-red-100 transition-colors">
+                     hover:bg-red-50 active:bg-red-100 transition-colors hidden">
               이날 삭제
             </button>
             <button onclick="saveWorkDay()"
@@ -586,11 +629,30 @@
     <div class="w-full max-w-sm px-6 text-center">
 
       <!-- 광고 슬롯 – 카카오 애드핏 DAN-zOmdh3TxPuQBjrgK -->
-      <div class="w-full mb-8 flex items-center justify-center overflow-hidden" style="min-height:208px;">
+      <div id="adSlotWrap" class="w-full mb-6 flex items-center justify-center overflow-hidden" style="min-height:140px;">
         <ins class="kakao_ad_area" style="display:none;"
           data-ad-unit="DAN-zOmdh3TxPuQBjrgK"
           data-ad-width="320"
           data-ad-height="480"></ins>
+        <!-- Fallback: 애드핏 미로드 시 CPA 카드 -->
+        <div id="adFallback" class="w-full rounded-2xl overflow-hidden border border-white/10">
+          <a href="https://www.moneytreecard.co.kr/?type=B&id=HCOSXMUILM" target="_blank" rel="noopener"
+            class="block bg-gradient-to-br from-[#1a2744] to-[#0d1a36] p-4">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span class="text-xl">💳</span>
+              </div>
+              <div class="text-left">
+                <p class="text-white font-black text-sm leading-tight">머니트리카드</p>
+                <p class="text-blue-300/70 text-[11px]">발급 조건 없는 체크카드</p>
+              </div>
+            </div>
+            <p class="text-white/60 text-[11px] leading-relaxed mb-3">정산하는 동안 잠깐! 떼인 돈 되찾는 것만큼 <span class="text-blue-300 font-bold">소비 혜택</span>도 챙기세요</p>
+            <div class="bg-blue-500 rounded-xl py-2 text-center">
+              <span class="text-white font-black text-sm">무료 카드 신청하기 →</span>
+            </div>
+          </a>
+        </div>
       </div>
 
       <!-- 카운트다운 링 -->
@@ -841,6 +903,7 @@
     settled: false,
     salaryAmount: 0,
     salaryPeriod: 'yearly',
+    actualPay: 0,
     isAppMarketMode: false,
   };
 
@@ -850,6 +913,7 @@
       t: state.employmentType,
       sa: state.salaryAmount,
       sp: state.salaryPeriod,
+      ap: state.actualPay,
     });
     localStorage.setItem('needon_v2', compact);
     localStorage.setItem('needon_freeze_backup', compact);
@@ -862,6 +926,7 @@
       state.employmentType = d.t  || 'employee';
       state.salaryAmount   = d.sa != null ? d.sa : 0;
       state.salaryPeriod   = d.sp || 'yearly';
+      state.actualPay      = d.ap != null ? d.ap : 0;
       setEmploymentType(state.employmentType);
       return;
     }
@@ -893,6 +958,11 @@
     document.getElementById('hourlyWageArea').classList.toggle('hidden', isSalary);
     document.getElementById('salaryInputArea').classList.toggle('hidden', !isSalary);
     document.getElementById('calendarSection').classList.toggle('hidden', isSalary);
+    document.getElementById('actualPayArea').classList.toggle('hidden', isSalary);
+
+    // CTA 버튼 텍스트: 직장인은 별도 문구
+    document.getElementById('ctaBtnText').textContent =
+      isSalary ? '내 실수령액 바로 계산하기' : '내 떼인 돈 최종 정산하기';
 
     if (isSalary) {
       document.getElementById('salaryAmountInput').value = '';
@@ -1030,7 +1100,7 @@
           <span class="text-xs font-bold ${eligible ? 'text-purple-700' : 'text-gray-600'}">${weekHours.toFixed(1)}시간</span>
           ${eligible
             ? '<span class="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">주휴수당 ✓</span>'
-            : '<span class="text-[9px] text-gray-300">15시간 미만</span>'}
+            : '<span class="text-[9px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">15h 미만 · 주휴 없음</span>'}
         </div>`;
       el.appendChild(div);
     });
@@ -1049,6 +1119,13 @@
     document.getElementById('startTime').value = rec ? rec.start  : '09:00';
     document.getElementById('endTime').value   = rec ? rec.end    : '18:00';
     document.getElementById('breakTime').value = rec ? rec.break  : '60';
+
+    // 기록이 있을 때만 삭제 버튼 표시, 레이아웃도 1열 ↔ 2열 전환
+    const hasRecord = !!rec;
+    const deleteBtn = document.getElementById('deleteDayBtn');
+    const btnRow    = document.getElementById('dayModalBtnRow');
+    deleteBtn.classList.toggle('hidden', !hasRecord);
+    btnRow.style.gridTemplateColumns = hasRecord ? '1fr 1fr' : '1fr';
 
     updateTimePreview();
     ['startTime', 'endTime', 'breakTime'].forEach(id =>
@@ -1262,6 +1339,9 @@
       const pfx = buildDateStr(d.getFullYear(), d.getMonth() + 1, 1).slice(0, 7);
       const count = Object.keys(state.workRecords).filter(k => k.startsWith(pfx)).length;
       if (count === 0) { releaseMutex(); showToast('달력에서 근무 날짜를 먼저 입력해 주세요 📅'); return; }
+      // 실제 받은 금액 (선택 입력)
+      const apRaw = (document.getElementById('actualPayInput').value || '').replace(/,/g, '');
+      state.actualPay = parseInt(apRaw, 10) || 0;
     }
 
     // 실행 시점 스냅샷 격리
@@ -1271,6 +1351,14 @@
     const modal = document.getElementById('adModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+
+    // 애드핏 로드 확인 (500ms 후) — 로드 성공 시 Fallback 숨김
+    setTimeout(() => {
+      const ins = modal.querySelector('.kakao_ad_area');
+      const loaded = ins && ins.style.display !== 'none' && ins.children.length > 0;
+      const fallback = document.getElementById('adFallback');
+      if (fallback) fallback.classList.toggle('hidden', loaded);
+    }, 500);
 
     let remaining = 10;
     const ring    = document.getElementById('adRing');
@@ -1310,14 +1398,14 @@
       document.getElementById('receipt').innerHTML = buildReceipt(d.getFullYear(), d.getMonth(), result);
     }
     document.getElementById('resultsSection').classList.remove('hidden');
-    // 카운트업 트리거 (50ms 후 DOM 렌더 완료 보장)
-    setTimeout(() => {
-      const amtEl = document.getElementById('receiptFinalAmt');
-      if (amtEl) countUp(amtEl, parseInt(amtEl.dataset.final, 10), 1500);
-    }, 80);
     requestAnimationFrame(() => {
       document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+    // 스크롤 완료 후 카운트업 시작 (800ms 대기)
+    setTimeout(() => {
+      const amtEl = document.getElementById('receiptFinalAmt');
+      if (amtEl) countUp(amtEl, parseInt(amtEl.dataset.final, 10), 1500);
+    }, 800);
   }
 
   // ──────────────────────────────────────
@@ -1443,6 +1531,20 @@
           <p class="text-[10px] text-white/70 mb-1 font-medium">📋 내가 받아야 할 금액</p>
           <p id="receiptFinalAmt" data-final="${Math.round(finalAmt)}" class="text-2xl font-black text-white"><span>${Math.round(finalAmt).toLocaleString()}</span><span class="text-base font-bold ml-0.5">원</span></p>
         </div>
+        ${state.actualPay > 0 ? (() => {
+          const unpaid = Math.round(finalAmt) - state.actualPay;
+          return `
+        <div class="bg-[#1A0A0A] px-4 py-3 flex items-center justify-between">
+          <div>
+            <p class="text-[10px] text-red-300/70 font-medium">💸 실제 받은 금액</p>
+            <p class="text-base font-black text-red-300">${state.actualPay.toLocaleString()}원</p>
+          </div>
+          <div class="text-right">
+            <p class="text-[10px] text-yellow-300/70 font-medium">${unpaid > 0 ? '🚨 체불 금액' : '✅ 초과 지급'}</p>
+            <p class="text-lg font-black ${unpaid > 0 ? 'text-yellow-300' : 'text-green-400'}">${Math.abs(unpaid).toLocaleString()}원</p>
+          </div>
+        </div>`;
+        })() : ''}
       </div>
 
       <!-- 급여 구성 비율 바 -->
@@ -1860,7 +1962,7 @@
   // ──────────────────────────────────────
   // CPA 고단가 버튼 빌더 (링크프라이스/텐핑)
   // ──────────────────────────────────────
-  const CPA_LINK = 'https://iryan.kr/t8gpvmwwi'; // 텐핑 CPA – 머니트리카드 (단가 4,800원)
+  const CPA_LINK = 'https://www.moneytreecard.co.kr/?type=B&id=HCOSXMUILM'; // 머니트리카드 직접 링크 (Tenping id 파라미터 추적)
 
   function buildCpaButton() {
     return `
@@ -1939,6 +2041,12 @@
 
   // 토스 결제 사후 복원
   document.addEventListener('DOMContentLoaded', () => {
+    // 온보딩 가이드 — 이미 닫은 경우 바로 제거
+    if (localStorage.getItem('needon_onboard') === '1') {
+      const og = document.getElementById('onboardingGuide');
+      if (og) og.remove();
+    }
+
     const params = new URLSearchParams(window.location.search);
     if (params.get('payment') === 'success') {
       const backup = localStorage.getItem('needon_freeze_backup');
