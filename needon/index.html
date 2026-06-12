@@ -623,53 +623,55 @@
 
 
   <!-- ══════════════════════════════════════
-       AD MODAL (10초 광고 대기)
+       AD MODAL (10초 영상광고)
   ══════════════════════════════════════ -->
-  <div id="adModal" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center bg-[#0F0A2A]">
-    <div class="w-full max-w-sm px-6 text-center">
+  <div id="adModal" class="fixed inset-0 z-[60] hidden flex-col items-center justify-center bg-[#0F0A2A] px-4">
+    <div class="w-full max-w-sm">
 
-      <!-- 광고 슬롯 – 카카오 애드핏 DAN-zOmdh3TxPuQBjrgK -->
-      <div id="adSlotWrap" class="w-full mb-6 flex items-center justify-center overflow-hidden" style="min-height:140px;">
-        <ins class="kakao_ad_area" style="display:none;"
-          data-ad-unit="DAN-zOmdh3TxPuQBjrgK"
-          data-ad-width="320"
-          data-ad-height="480"></ins>
-        <!-- Fallback: 애드핏 미로드 시 CPA 카드 -->
-        <div id="adFallback" class="w-full rounded-2xl overflow-hidden border border-white/10">
-          <a href="https://www.moneytreecard.co.kr/?type=B&id=HCOSXMUILM" target="_blank" rel="noopener"
-            class="block bg-gradient-to-br from-[#1a2744] to-[#0d1a36] p-4">
-            <div class="flex items-center gap-3 mb-3">
-              <div class="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
-                <span class="text-xl">💳</span>
-              </div>
-              <div class="text-left">
-                <p class="text-white font-black text-sm leading-tight">머니트리카드</p>
-                <p class="text-blue-300/70 text-[11px]">발급 조건 없는 체크카드</p>
-              </div>
-            </div>
-            <p class="text-white/60 text-[11px] leading-relaxed mb-3">정산하는 동안 잠깐! 떼인 돈 되찾는 것만큼 <span class="text-blue-300 font-bold">소비 혜택</span>도 챙기세요</p>
-            <div class="bg-blue-500 rounded-xl py-2 text-center">
-              <span class="text-white font-black text-sm">무료 카드 신청하기 →</span>
-            </div>
-          </a>
+      <!-- YouTube 영상 광고 (머니트리카드 공식) -->
+      <div class="w-full rounded-2xl overflow-hidden mb-3 bg-black" style="aspect-ratio:16/9;">
+        <iframe id="adVideoFrame"
+          src="about:blank"
+          frameborder="0"
+          allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+          class="w-full h-full"
+          style="min-height:185px;">
+        </iframe>
+      </div>
+
+      <!-- CPA 클릭 유도 버튼 -->
+      <a href="https://www.moneytreecard.co.kr/?type=B&id=HCOSXMUILM" target="_blank" rel="noopener"
+        class="flex items-center justify-between bg-blue-600 hover:bg-blue-500 rounded-2xl px-4 py-3 mb-4 transition-colors">
+        <div class="flex items-center gap-3">
+          <span class="text-xl">💳</span>
+          <div class="text-left">
+            <p class="text-white font-black text-sm leading-tight">머니트리카드 무료 신청</p>
+            <p class="text-blue-200 text-[11px]">발급 조건 없음 · 체크카드</p>
+          </div>
+        </div>
+        <span class="text-white/70 text-base font-bold">→</span>
+      </a>
+
+      <!-- 카운트다운 링 (컴팩트) -->
+      <div class="flex items-center justify-center gap-4">
+        <div class="relative w-14 h-14 flex-shrink-0">
+          <svg class="w-14 h-14 -rotate-90" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="7"/>
+            <circle id="adRing" cx="40" cy="40" r="36" fill="none" stroke="#FF5722" stroke-width="7"
+              stroke-linecap="round" class="ad-ring"/>
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span id="adCountNum" class="text-xl font-black text-white leading-none">10</span>
+            <span class="text-[9px] text-white/50">초</span>
+          </div>
+        </div>
+        <div>
+          <p class="text-white font-bold text-sm">광고 시청 중…</p>
+          <p class="text-white/40 text-xs">완료 후 정산 결과가 표시됩니다</p>
         </div>
       </div>
 
-      <!-- 카운트다운 링 -->
-      <div class="relative w-28 h-28 mx-auto mb-5">
-        <svg class="w-28 h-28 -rotate-90" viewBox="0 0 80 80">
-          <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="7"/>
-          <circle id="adRing" cx="40" cy="40" r="36" fill="none" stroke="#FF5722" stroke-width="7"
-            stroke-linecap="round" class="ad-ring"/>
-        </svg>
-        <div class="absolute inset-0 flex flex-col items-center justify-center">
-          <span id="adCountNum" class="text-4xl font-black text-white leading-none">10</span>
-          <span class="text-[10px] text-white/50 mt-0.5">초</span>
-        </div>
-      </div>
-
-      <p class="text-white font-bold text-sm mb-1">광고 시청 중…</p>
-      <p class="text-white/40 text-xs">시청 완료 후 정산 결과가 표시됩니다</p>
     </div>
   </div>
 
@@ -1352,13 +1354,12 @@
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 
-    // 애드핏 로드 확인 (500ms 후) — 로드 성공 시 Fallback 숨김
-    setTimeout(() => {
-      const ins = modal.querySelector('.kakao_ad_area');
-      const loaded = ins && ins.style.display !== 'none' && ins.children.length > 0;
-      const fallback = document.getElementById('adFallback');
-      if (fallback) fallback.classList.toggle('hidden', loaded);
-    }, 500);
+    // YouTube 영상 자동재생 시작 (모달 열릴 때 src 주입)
+    // TODO: OWNER_KEY_INJECTION — 영상 ID 교체 가능 (현재: 머니트리카드 공식 광고 M998na5X29M)
+    const videoFrame = document.getElementById('adVideoFrame');
+    if (videoFrame) {
+      videoFrame.src = 'https://www.youtube.com/embed/M998na5X29M?autoplay=1&mute=1&controls=0&rel=0&loop=1&playlist=M998na5X29M&modestbranding=1';
+    }
 
     let remaining = 10;
     const ring    = document.getElementById('adRing');
@@ -1376,6 +1377,8 @@
         clearInterval(state.adTimer);
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+        // YouTube 영상 정지 (src 초기화)
+        if (videoFrame) videoFrame.src = 'about:blank';
         showResults();
         releaseMutex();
       }
@@ -1946,7 +1949,13 @@
     try {
       showToast('정산서 캡처 중...');
       const el = document.getElementById('receipt');
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        ignoreElements: (node) => node.dataset && node.dataset.noCapture === 'true',
+      });
       const link = document.createElement('a');
       const today = new Date().toLocaleDateString('ko-KR').replace(/\. /g, '-').replace('.', '');
       link.download = `NeeDON_정산서_${today}.png`;
@@ -1966,7 +1975,7 @@
 
   function buildCpaButton() {
     return `
-      <a href="${CPA_LINK}" target="_blank" rel="noopener noreferrer"
+      <a href="${CPA_LINK}" target="_blank" rel="noopener noreferrer" data-no-capture="true"
         class="block mx-4 mb-4 bg-gradient-to-r from-[#1a56db] to-[#0ea5e9] rounded-2xl p-4 shadow-lg active:scale-[0.98] transition-transform text-center no-underline">
         <p class="text-white text-[11px] font-semibold opacity-80 mb-0.5">💳 알바생·프리랜서도 OK! 발급 조건 없음</p>
         <p class="text-white font-black text-base leading-tight">머니트리카드 무료 신청하기 →</p>
