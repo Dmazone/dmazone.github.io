@@ -125,7 +125,7 @@
     html.dark button[class*="border-gray-200"] {
       background: #1E1450 !important;
       border-color: #3D2B8A !important;
-      color: #9A96C0 !important;
+      color: #C0BBEA !important;
     }
 
     /* bg-gray-50 영역 */
@@ -155,6 +155,11 @@
     html.dark #howToGuide .text-purple-700 { color: #C4ACFF !important; }
     html.dark #howToGuide .text-purple-800 { color: #D4BCFF !important; }
     html.dark #howToGuide .text-indigo-700 { color: #B4A0FF !important; }
+    html.dark #howToGuide .text-purple-600 { color: #B0A0F0 !important; }
+    html.dark #howToGuide .text-purple-400 { color: #9880D8 !important; }
+    /* howTo 미니 카드 배경 */
+    html.dark #howToGuide .bg-white\/70 { background: rgba(55,35,120,0.45) !important; border-color: rgba(90,60,180,0.35) !important; }
+    html.dark #howToGuide .bg-white\/60 { background: rgba(40,25,90,0.5) !important; border-color: rgba(80,50,160,0.3) !important; }
 
     /* 주차 요약 */
     html.dark #weekSummary .bg-gray-50,
@@ -1119,7 +1124,7 @@
   }
 
   const DEFAULT_SCHEMA = {
-    r: {}, t: 'employee', sa: 0, sp: 'yearly',
+    r: {}, t: 'employee', sa: 0, sp: 'yearly', hw: 10030,
   };
 
   const state = {
@@ -1133,15 +1138,17 @@
     salaryPeriod: 'yearly',
     actualPay: 0,
     isAppMarketMode: false,
+    hourlyWage: 10030,
   };
 
   function saveToLocalStorage() {
     const compact = JSON.stringify({
-      r: state.workRecords,
-      t: state.employmentType,
+      r:  state.workRecords,
+      t:  state.employmentType,
       sa: state.salaryAmount,
       sp: state.salaryPeriod,
       ap: state.actualPay,
+      hw: state.hourlyWage,
     });
     localStorage.setItem('needon_v2', compact);
     localStorage.setItem('needon_freeze_backup', compact);
@@ -1155,6 +1162,9 @@
       state.salaryAmount   = d.sa != null ? d.sa : 0;
       state.salaryPeriod   = d.sp || 'yearly';
       state.actualPay      = d.ap != null ? d.ap : 0;
+      state.hourlyWage     = d.hw != null ? d.hw : 10030;
+      const wageEl = document.getElementById('hourlyWage');
+      if (wageEl) wageEl.value = state.hourlyWage.toLocaleString('ko-KR');
       setEmploymentType(state.employmentType);
       return;
     }
@@ -1572,7 +1582,8 @@
       state.actualPay = parseInt(apRaw, 10) || 0;
     }
 
-    // 실행 시점 스냅샷 격리
+    // 실행 시점 스냅샷 격리 (시급은 DOM에서 최신값으로 동기화 후 스냅샷)
+    state.hourlyWage = getWage() || state.hourlyWage || 10030;
     _pendingSnap = JSON.parse(JSON.stringify(state));
 
     // 광고 모달 표시
@@ -2401,6 +2412,7 @@
   // 초기화
   // ──────────────────────────────────────
   document.getElementById('hourlyWage').addEventListener('input', () => {
+    state.hourlyWage = getWage();
     renderMonthSummary();
     if (state.selectedDay) updateTimePreview();
   });
