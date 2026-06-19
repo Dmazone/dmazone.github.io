@@ -68,16 +68,52 @@
       70%  { transform: scale(1.1);  opacity: 0.3; }
       100% { transform: scale(0.95); opacity: 1; }
     }
+    /* 오늘의루틴 스타일: 셀 스태거 */
+    @keyframes cellPop {
+      0%   { opacity: 0; transform: scale(0.75); }
+      70%  { transform: scale(1.06); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    /* 월 전환 슬라이드 */
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(28px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(-28px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .cal-slide-left  { animation: slideInLeft  0.22s cubic-bezier(0.22,1,0.36,1) both; }
+    .cal-slide-right { animation: slideInRight 0.22s cubic-bezier(0.22,1,0.36,1) both; }
 
     .fade-in-up  { animation: fadeInUp 0.35s ease-out both; }
     .slide-panel { animation: slideUpPanel 0.3s cubic-bezier(0.32, 0.72, 0, 1) both; }
 
     .calendar-day {
-      min-height: 52px;
+      min-height: 56px;
       cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
+      transition: background 0.15s, transform 0.12s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s;
+      border-radius: 14px;
+      overflow: hidden;
     }
-    .calendar-day:active { transform: scale(0.93); }
+    .calendar-day:active {
+      transform: scale(0.88);
+      box-shadow: 0 0 0 3px rgba(45,27,105,0.18);
+    }
+    /* 근무일 하단 액센트 바 */
+    .calendar-day .day-accent-bar {
+      position: absolute;
+      bottom: 0; left: 8px; right: 8px;
+      height: 3px;
+      border-radius: 2px;
+    }
+    /* 야간 달 배지 */
+    .night-badge {
+      position: absolute;
+      top: 3px; right: 3px;
+      font-size: 9px;
+      line-height: 1;
+    }
 
     .ad-ring {
       stroke-dasharray: 226;
@@ -147,6 +183,12 @@
     html.dark .calendar-day { background: #1A1245 !important; }
     html.dark .calendar-day:hover { background: #2D1B69 !important; }
     html.dark .calendar-day.bg-white { background: #1A1245 !important; }
+    html.dark .calendar-day.bg-purple-50 { background: #1E1450 !important; }
+    html.dark .calendar-day.bg-orange-50 { background: #1E0E0A !important; }
+    html.dark .calendar-day.ring-2 { --tw-ring-color: #FF5722 !important; }
+    /* 주차 요약 다크 */
+    html.dark #weekSummary > div.bg-purple-50 { background: #1E1450 !important; border-color: #7C3AED !important; }
+    html.dark #weekSummary > div.bg-gray-50  { background: #1A1245 !important; border-color: #2D2060 !important; }
 
     /* 온보딩 가이드 */
     html.dark #onboardingGuide,
@@ -1237,10 +1279,12 @@
   function changeMonth(delta) {
     const d = state.currentDate;
     state.currentDate = new Date(d.getFullYear(), d.getMonth() + delta, 1);
+    _calSlideDir = delta;
     renderCalendar();
     document.getElementById('resultsSection').classList.add('hidden');
     state.settled = false;
   }
+  let _calSlideDir = 0;
 
   function renderCalendar() {
     const d     = state.currentDate;
@@ -1256,6 +1300,13 @@
 
     const grid = document.getElementById('calendarGrid');
     grid.innerHTML = '';
+    // 월 전환 슬라이드 (오늘의루틴 스타일)
+    if (_calSlideDir !== 0) {
+      grid.className = grid.className.replace(/cal-slide-\w+/g, '').trim();
+      void grid.offsetWidth;
+      grid.classList.add(_calSlideDir > 0 ? 'cal-slide-left' : 'cal-slide-right');
+      _calSlideDir = 0;
+    }
 
     // 빈 셀
     for (let i = 0; i < firstDow; i++) {
@@ -1272,31 +1323,56 @@
       const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
 
       const cell = document.createElement('div');
-      cell.className = `calendar-day rounded-xl flex flex-col items-center pt-1.5 pb-1 relative
-        ${rec ? 'bg-purple-50 hover:bg-purple-100' : 'bg-gray-50 hover:bg-gray-100'}`;
+      // 오늘의루틴 스타일: 근무일은 보라색 배경, 오늘은 오렌지 테두리
+      cell.className = `calendar-day flex flex-col items-center pt-2 pb-2 relative
+        ${rec
+          ? 'bg-purple-50 hover:bg-purple-100'
+          : isToday
+            ? 'bg-orange-50 hover:bg-orange-100'
+            : 'bg-gray-50 hover:bg-gray-100'}
+        ${isToday ? 'ring-2 ring-[#FF5722] ring-inset' : ''}`;
       cell.onclick = () => openDayModal(dateStr, day);
+
+      // 스태거 애니메이션 (오늘의루틴 셀 등장 효과)
+      const idx = day - 1 + firstDow;
+      cell.style.animation = `cellPop 0.28s cubic-bezier(0.34,1.56,0.64,1) ${idx * 18}ms both`;
 
       // 날짜 숫자
       const numEl = document.createElement('div');
       numEl.className = `w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black
-        ${isToday ? 'bg-[#2D1B69] text-white'
-          : dow === 0 ? 'text-red-400'
-          : dow === 6 ? 'text-blue-400'
-          : 'text-gray-700'}`;
+        ${isToday
+          ? 'bg-[#FF5722] text-white shadow-sm'
+          : rec
+            ? 'bg-[#2D1B69] text-white'
+            : dow === 0 ? 'text-red-400'
+            : dow === 6 ? 'text-blue-400'
+            : 'text-gray-600'}`;
       numEl.textContent = day;
       cell.appendChild(numEl);
 
       if (rec) {
         const { totalHours, nightHours } = calcHours(rec.start, rec.end, rec.break || 0);
+        // 시간 태그 (오늘의루틴 스타일 pill)
         const hEl = document.createElement('div');
-        hEl.className = 'text-[9px] font-bold text-[#FF5722] mt-0.5 leading-none';
+        hEl.className = 'text-[8px] font-black mt-0.5 px-1 py-px rounded-full leading-none ' +
+          (nightHours > 0 ? 'bg-[#2D1B69] text-white' : 'bg-[#FF5722]/15 text-[#FF5722]');
         hEl.textContent = `${totalHours.toFixed(1)}h`;
         cell.appendChild(hEl);
 
+        // 하단 액센트 바 (오늘의루틴 시그니처)
+        const bar = document.createElement('div');
+        bar.className = 'day-accent-bar';
+        bar.style.background = nightHours > 0
+          ? 'linear-gradient(90deg,#FF5722,#7C3AED)'
+          : '#FF5722';
+        cell.appendChild(bar);
+
+        // 야간 달 배지 (점 → 이모지)
         if (nightHours > 0) {
-          const dot = document.createElement('div');
-          dot.className = 'absolute top-1 right-1 w-1.5 h-1.5 bg-[#2D1B69] rounded-full';
-          cell.appendChild(dot);
+          const badge = document.createElement('span');
+          badge.className = 'night-badge';
+          badge.textContent = '🌙';
+          cell.appendChild(badge);
         }
       }
 
@@ -1337,15 +1413,19 @@
       if (weekHours === 0) return;
       const eligible = weekHours >= 15;
       const div = document.createElement('div');
-      div.className = `flex items-center justify-between px-3 py-2 rounded-xl
-        ${eligible ? 'bg-purple-50' : 'bg-gray-50'}`;
+      // 오늘의루틴 스타일: 좌측 컬러 액센트 보더
+      div.className = `flex items-center justify-between px-3 py-2.5 rounded-xl border-l-4
+        ${eligible ? 'bg-purple-50 border-[#2D1B69]' : 'bg-gray-50 border-gray-200'}`;
+      div.style.animation = `fadeInUp 0.22s ease-out ${wi * 60}ms both`;
       div.innerHTML = `
-        <span class="text-xs text-gray-500">${wi + 1}주차</span>
         <div class="flex items-center gap-2">
-          <span class="text-xs font-bold ${eligible ? 'text-purple-700' : 'text-gray-600'}">${weekHours.toFixed(1)}시간</span>
+          <span class="text-[10px] font-black ${eligible ? 'text-purple-800' : 'text-gray-400'}">${wi + 1}주차</span>
+          <span class="text-xs font-bold ${eligible ? 'text-purple-700' : 'text-gray-500'}">${weekHours.toFixed(1)}h</span>
+        </div>
+        <div class="flex items-center gap-1.5">
           ${eligible
-            ? '<span class="text-[9px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-bold">주휴수당 ✓</span>'
-            : '<span class="text-[9px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">15h 미만 · 주휴 없음</span>'}
+            ? '<span class="text-[9px] bg-[#2D1B69] text-white px-2 py-0.5 rounded-full font-black">주휴 ✓</span>'
+            : '<span class="text-[9px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full font-bold">15h 미만</span>'}
         </div>`;
       el.appendChild(div);
     });
