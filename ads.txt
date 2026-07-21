@@ -1,0 +1,4 @@
+adsterra.com, 3373247, DIRECT
+propellerads.com, 2039544, DIRECT, 4773c97e95f9c1cc
+monetag.com, 2039544, DIRECT
+popads.net, 5313246, DIRECT, a56acad624954fa1
